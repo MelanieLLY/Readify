@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频播放架构测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-box h4 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        
+        .architecture-diagram {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .step {
+            margin: 10px 0;
+            padding: 8px;
+            background: #fff;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .step.error {
+            border-left-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>Readify 音频播放架构测试</h1>
+    
+    <div class="info-box">
+        <h4>架构说明</h4>
+        <p>为了解决Chrome扩展Service Worker中的API限制，音频播放现在采用以下架构：</p>
+        <ul>
+            <li><strong>Background Script</strong>: 负责API调用和数据处理</li>
+            <li><strong>Content Script</strong>: 负责音频播放和用户交互</li>
+            <li><strong>通信机制</strong>: 通过Chrome消息传递API进行通信</li>
+        </ul>
+    </div>
+
+    <div class="architecture-diagram">
+        <h4>音频播放流程：</h4>
+        <div class="step">1. 用户点击段落喇叭图标</div>
+        <div class="step">2. Content Script → Background Script: 发送TTS请求</div>
+        <div class="step">3. Background Script → OpenAI API: 获取音频数据</div>
+        <div class="step">4. Background Script → Content Script: 发送音频数据</div>
+        <div class="step">5. Content Script: 创建Audio元素并播放</div>
+        <div class="step">6. Content Script → Background Script: 通知播放状态</div>
+        <div class="step">7. Background Script → Content Script: 更新图标状态</div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试1: 检查API可用性</h3>
+        <p>验证当前环境中可用的API</p>
+        <div id="api-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试2: 音频播放功能</h3>
+        <p>测试基本的音频播放功能</p>
+        <div id="audio-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试3: 消息传递</h3>
+        <p>测试Chrome扩展消息传递机制</p>
+        <div id="message-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>段落朗读测试</h3>
+        <p>这是一个测试段落，用于验证Readify插件的段落朗读功能。当你启用段落朗读功能后，这个段落的末尾应该会出现一个喇叭图标。</p>
+        
+        <p>这是另一个测试段落。点击段落末尾的喇叭图标应该能够朗读这段文字。新的音频播放架构应该能够解决之前的API限制问题。</p>
+    </div>
+
+    <script>
+        // 测试API可用性
+        function testAPIAvailability() {
+            const resultDiv = document.getElementById('api-test-result');
+            const tests = [];
+            
+            // 测试Audio API
+            try {
+                const audio = new Audio();
+                tests.push('✅ Audio API 可用');
+            } catch (error) {
+                tests.push('❌ Audio API 不可用: ' + error.message);
+            }
+            
+            // 测试URL.createObjectURL
+            try {
+                if (typeof URL !== 'undefined' && URL.createObjectURL) {
+                    tests.push('✅ URL.createObjectURL 可用');
+                } else {
+                    tests.push('❌ URL.createObjectURL 不可用');
+                }
+            } catch (error) {
+                tests.push('❌ URL.createObjectURL 不可用: ' + error.message);
+            }
+            
+            // 测试Chrome API
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime) {
+                    tests.push('✅ Chrome Extension API 可用');
+                } else {
+                    tests.push('❌ Chrome Extension API 不可用');
+                }
+            } catch (error) {
+                tests.push('❌ Chrome Extension API 不可用: ' + error.message);
+            }
+            
+            // 测试Base64转换
+            try {
+                const testData = new Uint8Array([1, 2, 3, 4]);
+                const base64 = btoa(String.fromCharCode.apply(null, testData));
+                tests.push('✅ Base64 转换可用');
+            } catch (error) {
+                tests.push('❌ Base64 转换不可用: ' + error.message);
+            }
+            
+            resultDiv.innerHTML = tests.map(test => `<div>${test}</div>`).join('');
+        }
+        
+        // 测试音频播放
+        function testAudioPlayback() {
+            const resultDiv = document.getElementById('audio-test-result');
+            
+            try {
+                // 创建一个简单的音频数据（无效的MP3数据，仅用于测试）
+                const audioData = new Uint8Array([0x49, 0x44, 0x33, 0x00, 0x00, 0x00, 0x00]);
+                const base64 = btoa(String.fromCharCode.apply(null, audioData));
+                const audioUrl = `data:audio/mp3;base64,${base64}`;
+                
+                const audio = new Audio(audioUrl);
+                
+                audio.addEventListener('loadstart', () => {
+                    resultDiv.innerHTML = '<div class="step">✅ 音频元素创建成功</div>';
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    resultDiv.innerHTML = '<div class="step error">❌ 音频播放失败（这是预期的，因为我们使用的是无效的音频数据）</div>';
+                });
+                
+                audio.load();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="step error">❌ 音频播放测试失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 测试消息传递
+        function testMessagePassing() {
+            const resultDiv = document.getElementById('message-test-result');
+            
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime) {
+                    // 尝试发送测试消息
+                    chrome.runtime.sendMessage({ action: 'test' }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            resultDiv.innerHTML = '<div class="step">⚠️ 消息传递测试：扩展可能未安装或未激活</div>';
+                        } else {
+                            resultDiv.innerHTML = '<div class="step">✅ 消息传递机制可用</div>';
+                        }
+                    });
+                } else {
+                    resultDiv.innerHTML = '<div class="step error">❌ Chrome Extension API 不可用</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="step error">❌ 消息传递测试失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 页面加载完成后运行测试
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('音频播放架构测试页面已加载');
+            
+            // 延迟执行测试，确保页面完全加载
+            setTimeout(() => {
+                testAPIAvailability();
+                testAudioPlayback();
+                testMessagePassing();
+            }, 500);
+        });
+    </script>
+</body>
+</html> 

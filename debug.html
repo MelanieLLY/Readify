@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readify 调试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .debug-info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .debug-info pre {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Readify 调试页面</h1>
+    
+    <div class="debug-info">
+        <h3>调试信息</h3>
+        <p>这个页面用于测试Readify插件的段落朗读功能。</p>
+        <p><strong>使用步骤：</strong></p>
+        <ol>
+            <li>确保已安装Readify插件</li>
+            <li>在插件设置中配置OpenAI API Key</li>
+            <li>启用段落朗读功能</li>
+            <li>刷新此页面</li>
+            <li>点击段落末尾的喇叭图标测试朗读</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>测试段落 1</h3>
+        <p>这是一个测试段落，用于验证Readify插件的段落朗读功能是否正常工作。当你启用段落朗读功能后，这个段落的末尾应该会出现一个喇叭图标。</p>
+    </div>
+
+    <div class="test-section">
+        <h3>测试段落 2</h3>
+        <p>这是另一个测试段落。点击段落末尾的喇叭图标应该能够朗读这段文字。如果出现错误，请检查控制台中的错误信息。</p>
+    </div>
+
+    <div class="test-section">
+        <h3>测试段落 3</h3>
+        <p>第三个测试段落。这个段落包含一些特殊字符和标点符号，用来测试TTS API对这些内容的处理能力。</p>
+    </div>
+
+    <div class="debug-info">
+        <h3>常见问题排查</h3>
+        <ul>
+            <li><strong>问题：</strong>点击喇叭图标没有反应</li>
+            <li><strong>解决：</strong>检查是否已设置API Key，查看浏览器控制台的错误信息</li>
+            <li><strong>问题：</strong>显示"缺少必要参数"错误</li>
+            <li><strong>解决：</strong>确保已在插件设置中保存了API Key</li>
+            <li><strong>问题：</strong>喇叭图标不显示</li>
+            <li><strong>解决：</strong>确保已启用段落朗读功能，刷新页面</li>
+        </ul>
+    </div>
+
+    <script>
+        // 简单的调试脚本
+        console.log('Readify 调试页面已加载');
+        
+        // 检查插件是否已安装
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            console.log('Chrome扩展API可用');
+        } else {
+            console.log('Chrome扩展API不可用');
+        }
+        
+        // 监听段落变化
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.classList && node.classList.contains('readify-speak-icon')) {
+                                console.log('检测到Readify喇叭图标:', node);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,149 @@
+/* content.css - 内容脚本的样式 */
+
+/* 高亮选中文字 */
+.readify-highlight {
+    background-color: #ffeb3b !important;
+    padding: 2px 4px !important;
+    border-radius: 3px !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.readify-highlight:hover {
+    background-color: #fdd835 !important;
+}
+
+/* 确保高亮样式不被页面样式覆盖 */
+.readify-highlight * {
+    background-color: inherit !important;
+}
+
+/* 喇叭图标样式 */
+.readify-speak-icon {
+    display: inline-block !important;
+    margin-left: 8px !important;
+    padding: 2px 4px !important;
+    background-color: #667eea !important;
+    color: white !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    transition: all 0.2s ease !important;
+    vertical-align: middle !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+.readify-speak-icon:hover {
+    background-color: #5a6fd8 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+.readify-speak-icon:active {
+    transform: scale(0.95) !important;
+}
+
+/* 加载状态 */
+.readify-speak-icon[data-loading="true"] {
+    background-color: #ff9800 !important;
+    animation: pulse 1.5s infinite !important;
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* 确保图标在段落末尾正确显示 */
+p:has(.readify-speak-icon) {
+    position: relative !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .readify-speak-icon {
+        font-size: 12px !important;
+        padding: 1px 3px !important;
+        margin-left: 4px !important;
+    }
+}
+
+/* 确保图标不被页面样式覆盖 */
+.readify-speak-icon * {
+    background-color: inherit !important;
+    color: inherit !important;
+}
+
+/* 通知样式 */
+.readify-notification {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: #f44336 !important;
+    color: white !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    z-index: 10000 !important;
+    max-width: 300px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 14px !important;
+    animation: slideIn 0.3s ease-out !important;
+}
+
+.notification-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.notification-icon {
+    font-size: 16px !important;
+}
+
+.notification-text {
+    flex: 1 !important;
+    line-height: 1.4 !important;
+}
+
+.notification-close {
+    background: none !important;
+    border: none !important;
+    color: white !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    transition: background-color 0.2s !important;
+}
+
+.notification-close:hover {
+    background-color: rgba(255,255,255,0.2) !important;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+} 

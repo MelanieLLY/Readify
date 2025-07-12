@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频播放测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #5a6fd8;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>音频播放功能测试</h1>
+    
+    <div class="test-section">
+        <h3>测试1: Base64转换功能</h3>
+        <p>测试ArrayBuffer到Base64的转换功能</p>
+        <button onclick="testBase64Conversion()">测试Base64转换</button>
+        <div id="base64-result" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试2: 音频播放</h3>
+        <p>测试音频播放功能（需要有效的音频数据）</p>
+        <button onclick="testAudioPlayback()">测试音频播放</button>
+        <div id="audio-result" class="status"></div>
+    </div>
+
+    <script>
+        // 测试Base64转换功能
+        function testBase64Conversion() {
+            try {
+                // 创建一个简单的测试数据
+                const testString = "Hello, World!";
+                const encoder = new TextEncoder();
+                const arrayBuffer = encoder.encode(testString);
+                
+                // 转换为base64
+                const base64 = arrayBufferToBase64(arrayBuffer);
+                
+                // 验证转换结果
+                const decoder = new TextDecoder();
+                const decodedArrayBuffer = base64ToArrayBuffer(base64);
+                const decodedString = decoder.decode(decodedArrayBuffer);
+                
+                const resultDiv = document.getElementById('base64-result');
+                if (decodedString === testString) {
+                    resultDiv.className = 'status success';
+                    resultDiv.textContent = '✅ Base64转换测试成功！';
+                } else {
+                    resultDiv.className = 'status error';
+                    resultDiv.textContent = '❌ Base64转换测试失败！';
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('base64-result');
+                resultDiv.className = 'status error';
+                resultDiv.textContent = '❌ Base64转换测试出错: ' + error.message;
+            }
+        }
+        
+        // 测试音频播放功能
+        function testAudioPlayback() {
+            try {
+                // 创建一个简单的音频数据（这里只是一个示例）
+                const audioData = new Uint8Array([0x49, 0x44, 0x33]); // 简单的MP3头部
+                const base64 = arrayBufferToBase64(audioData);
+                const audioUrl = `data:audio/mp3;base64,${base64}`;
+                
+                const audio = new Audio(audioUrl);
+                audio.addEventListener('error', (e) => {
+                    const resultDiv = document.getElementById('audio-result');
+                    resultDiv.className = 'status error';
+                    resultDiv.textContent = '❌ 音频播放测试失败（这是预期的，因为我们使用的是无效的音频数据）';
+                });
+                
+                audio.addEventListener('loadstart', () => {
+                    const resultDiv = document.getElementById('audio-result');
+                    resultDiv.className = 'status success';
+                    resultDiv.textContent = '✅ 音频播放测试通过（音频元素创建成功）';
+                });
+                
+                audio.load();
+                
+            } catch (error) {
+                const resultDiv = document.getElementById('audio-result');
+                resultDiv.className = 'status error';
+                resultDiv.textContent = '❌ 音频播放测试出错: ' + error.message;
+            }
+        }
+        
+        // ArrayBuffer转Base64函数（与background.js中的相同）
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+        
+        // Base64转ArrayBuffer函数（用于测试）
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        console.log('音频播放测试页面已加载');
+    </script>
+</body>
+</html> 

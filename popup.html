@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readify</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Readify</h1>
+            <p>网页文字朗读助手</p>
+        </header>
+
+        <div class="section">
+            <h3>OpenAI API Key</h3>
+            <div class="api-key-section">
+                <input type="password" id="apiKey" placeholder="请输入OpenAI API Key" />
+                <button id="saveApiKey">保存</button>
+            </div>
+            <p class="hint">API Key将安全存储在本地，仅用于TTS功能</p>
+        </div>
+        <div class="section">
+            <div id="status" class="status"></div>
+        </div>
+        <div class="section">
+            <h3>朗读设置</h3>
+            <div class="setting-item">
+                <label for="speedSlider">语速调节: <span id="speedValue">1.0x</span></label>
+                <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" />
+                <div class="speed-indicator">
+                    <span class="speed-label">慢</span>
+                    <span class="speed-label">正常</span>
+                    <span class="speed-label">快</span>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label for="voiceSelect">语音选择:</label>
+                <select id="voiceSelect">
+                    <option value="nova">Nova (推荐)</option>
+                    <option value="alloy">Alloy</option>
+                    <option value="echo">Echo</option>
+                    <option value="fable">Fable</option>
+                    <option value="onyx">Onyx</option>
+                    <option value="shimmer">Shimmer</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>朗读控制</h3>
+            <div class="control-buttons">
+                <button id="readPage" class="primary-btn">朗读页面文字</button>
+                <button id="readSelection" class="secondary-btn">朗读选中文字</button>
+                <button id="stopReading" class="danger-btn" disabled>停止朗读</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>段落朗读功能</h3>
+            <div class="setting-item">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showParagraphIcons" />
+                    <span class="checkmark"></span>
+                    在段落末尾显示朗读图标
+                </label>
+                <p class="hint">启用后，每个段落末尾会显示喇叭图标，点击即可朗读该段落</p>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readify 新功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .feature-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        }
+        
+        .feature-section h2 {
+            color: #667eea;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+        }
+        
+        .feature-description {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .test-instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .test-instructions h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .test-instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .test-instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .demo-text {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        .speed-demo {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .speed-demo h4 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        
+        .speed-range {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #ff9800 0%, #4caf50 50%, #f44336 100%);
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+        
+        .speed-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+            border: 2px solid white;
+        }
+        
+        .speed-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Readify 新功能测试页面</h1>
+    
+    <div class="feature-section">
+        <h2>
+            <span class="feature-icon">🔑</span>
+            新功能1: API Key保存提示
+        </h2>
+        
+        <div class="feature-description">
+            <strong>功能说明：</strong>当用户在插件弹出窗口中输入API Key并点击保存后，会显示包含API Key末尾4位字符的成功提示，让用户确认保存的是正确的API Key。
+        </div>
+        
+        <div class="test-instructions">
+            <h4>测试步骤：</h4>
+            <ol>
+                <li>点击浏览器工具栏中的Readify插件图标</li>
+                <li>在"OpenAI API Key"输入框中输入你的API Key</li>
+                <li>点击"保存"按钮</li>
+                <li>观察状态提示，应该显示类似 <span class="highlight">"API Key (abcd) 保存成功"</span> 的提示</li>
+            </ol>
+        </div>
+        
+        <div class="demo-text">
+            <strong>示例提示：</strong><br>
+            ✅ API Key (sk-1234) 保存成功<br>
+            ✅ API Key (abcd) 保存成功<br>
+            ✅ API Key (xyz9) 保存成功
+        </div>
+    </div>
+
+    <div class="feature-section">
+        <h2>
+            <span class="feature-icon">⚡</span>
+            新功能2: 实时语速调节
+        </h2>
+        
+        <div class="feature-description">
+            <strong>功能说明：</strong>用户可以在音频播放过程中实时调整语速，无需停止播放。滑块拖动时会立即应用到当前播放的音频上，提供更流畅的用户体验。
+        </div>
+        
+        <div class="test-instructions">
+            <h4>测试步骤：</h4>
+            <ol>
+                <li>启用段落朗读功能</li>
+                <li>点击任意段落末尾的喇叭图标开始朗读</li>
+                <li>在音频播放过程中，打开插件弹出窗口</li>
+                <li>拖动语速滑块，观察音频播放速度的实时变化</li>
+                <li>可以听到音频速度立即调整，无需重新生成</li>
+            </ol>
+        </div>
+        
+        <div class="speed-demo">
+            <h4>语速滑块演示：</h4>
+            <p>当前语速: <span id="currentSpeed">1.0x</span></p>
+            <input type="range" class="speed-range" id="demoSpeedSlider" min="0.5" max="2.0" step="0.1" value="1.0" />
+            <div class="speed-labels">
+                <span>慢 (0.5x)</span>
+                <span>正常 (1.0x)</span>
+                <span>快 (2.0x)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-section">
+        <h2>
+            <span class="feature-icon">🎯</span>
+            测试段落
+        </h2>
+        
+        <p>这是一个测试段落，用于验证Readify插件的段落朗读功能。当你启用段落朗读功能后，这个段落的末尾应该会出现一个喇叭图标。</p>
+        
+        <p>这是另一个测试段落。你可以点击段落末尾的喇叭图标开始朗读，然后在播放过程中打开插件弹出窗口，拖动语速滑块来实时调整播放速度。</p>
+        
+        <p>第三个测试段落。实时语速调节功能让你可以根据需要随时调整朗读速度，无需等待音频重新生成，大大提升了使用体验。</p>
+    </div>
+
+    <div class="feature-section">
+        <h2>
+            <span class="feature-icon">💡</span>
+            技术优势
+        </h2>
+        
+        <div class="feature-description">
+            <strong>实时语速调节的优势：</strong>
+            <ul>
+                <li><strong>即时响应：</strong>无需等待API重新生成音频</li>
+                <li><strong>节省费用：</strong>不需要为不同语速重新调用OpenAI API</li>
+                <li><strong>用户体验：</strong>可以实时调整到最适合的语速</li>
+                <li><strong>技术实现：</strong>利用HTML5 Audio API的playbackRate属性</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 演示语速滑块
+        const demoSpeedSlider = document.getElementById('demoSpeedSlider');
+        const currentSpeedSpan = document.getElementById('currentSpeed');
+        
+        demoSpeedSlider.addEventListener('input', (e) => {
+            const speed = e.target.value;
+            currentSpeedSpan.textContent = `${speed}x`;
+        });
+        
+        console.log('Readify 新功能测试页面已加载');
+    </script>
+</body>
+</html> 
