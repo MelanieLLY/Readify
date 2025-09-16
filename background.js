@@ -4,6 +4,9 @@ class ReadifyBackground {
         this.currentAudio = null;
         this.isPlaying = false;
         this.currentParagraphId = null;
+        this.currentParagraphIds = []; // 新增：支持多个段落ID
+        this.audioCache = new Map(); // 新增：音频缓存
+        this.cacheSize = 50; // 最大缓存数量
         this.initMessageListener();
     }
 
@@ -24,6 +27,20 @@ class ReadifyBackground {
                     sendResponse({ success: true });
                     return true;
                 
+                case 'getCacheStats':
+                    sendResponse(this.getCacheStats());
+                    return true;
+                
+                case 'clearCache':
+                    this.audioCache.clear();
+                    sendResponse({ success: true, message: '缓存已清空' });
+                    return true;
+                
+                case 'cleanExpiredCache':
+                    this.cleanExpiredCache();
+                    sendResponse({ success: true, message: '过期缓存已清理' });
+                    return true;
+                
                 default:
                     sendResponse({ success: false, error: '未知操作' });
             }
@@ -33,7 +50,7 @@ class ReadifyBackground {
     // 开始TTS
     async startTTS(request) {
         try {
-            const { text, apiKey, speed = 1.0, voice = 'nova', paragraphId } = request;
+            const { text, apiKey, speed = 1.0, voice = 'nova', paragraphIds, lastParagraphId } = request;
 
             if (!text || !apiKey) {
                 return {
@@ -46,26 +63,41 @@ class ReadifyBackground {
             await this.stopTTS();
 
             // 如果是段落朗读，更新当前段落ID
-            if (paragraphId) {
-                this.currentParagraphId = paragraphId;
+            if (paragraphIds && lastParagraphId) {
+                this.currentParagraphIds = paragraphIds;
+                this.currentParagraphId = lastParagraphId; // 用于向后兼容
             }
 
-            // 调用OpenAI TTS API
-            const audioBlob = await this.callOpenAITTS(text, apiKey, voice);
-            
-            if (!audioBlob) {
-                return {
-                    success: false,
-                    error: 'TTS API调用失败'
-                };
+            // 检查缓存中是否有音频
+            const cachedAudio = this.getCachedAudio(text, voice, speed);
+            let audioBlob;
+
+            if (cachedAudio) {
+                console.log('使用缓存的音频');
+                audioBlob = cachedAudio.blob;
+            } else {
+                console.log('调用TTS API生成音频');
+                // 调用OpenAI TTS API
+                audioBlob = await this.callOpenAITTS(text, apiKey, voice);
+                
+                if (!audioBlob) {
+                    return {
+                        success: false,
+                        error: 'TTS API调用失败'
+                    };
+                }
+
+                // 将音频存储到缓存
+                this.cacheAudio(text, voice, speed, audioBlob);
             }
 
             // 播放音频
-            await this.playAudio(audioBlob, speed, paragraphId);
+            await this.playAudio(audioBlob, speed, lastParagraphId, paragraphIds);
 
             return {
                 success: true,
-                message: '开始播放音频'
+                message: cachedAudio ? '播放缓存的音频' : '开始播放音频',
+                fromCache: !!cachedAudio
             };
 
         } catch (error) {
@@ -114,7 +146,7 @@ class ReadifyBackground {
     }
 
     // 播放音频
-    async playAudio(audioBlob, speed, paragraphId) {
+    async playAudio(audioBlob, speed, paragraphId, paragraphIds = []) {
         try {
             // 将Blob转换为ArrayBuffer
             const arrayBuffer = await audioBlob.arrayBuffer();
@@ -123,11 +155,12 @@ class ReadifyBackground {
             const base64 = this.arrayBufferToBase64(arrayBuffer);
             
             // 向content script发送消息播放音频
-            const response = await this.sendAudioToContentScript(base64, speed, paragraphId);
+            const response = await this.sendAudioToContentScript(base64, speed, paragraphId, paragraphIds);
             
             if (response.success) {
                 this.isPlaying = true;
                 this.currentParagraphId = paragraphId;
+                this.currentParagraphIds = paragraphIds;
             } else {
                 throw new Error(response.error);
             }
@@ -139,7 +172,7 @@ class ReadifyBackground {
     }
 
     // 向content script发送音频数据
-    async sendAudioToContentScript(base64, speed, paragraphId) {
+    async sendAudioToContentScript(base64, speed, paragraphId, paragraphIds = []) {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
@@ -147,7 +180,8 @@ class ReadifyBackground {
                 action: 'playAudio',
                 audioData: base64,
                 speed: speed,
-                paragraphId: paragraphId
+                paragraphId: paragraphId,
+                paragraphIds: paragraphIds
             });
             
             return response;
@@ -192,6 +226,13 @@ class ReadifyBackground {
                 await this.stopAudioInContentScript();
                 
                 this.isPlaying = false;
+                // 清理所有相关段落的状态
+                if (this.currentParagraphIds.length > 0) {
+                    this.currentParagraphIds.forEach(id => {
+                        this.updateParagraphIconState(id, 'stopped');
+                    });
+                    this.currentParagraphIds = [];
+                }
                 this.currentParagraphId = null;
             }
 
@@ -230,19 +271,22 @@ class ReadifyBackground {
             case 'audioStarted':
                 this.isPlaying = true;
                 this.currentParagraphId = paragraphId;
+                // 只更新当前段落的图标状态
                 this.updateParagraphIconState(paragraphId, 'playing');
                 break;
                 
             case 'audioEnded':
                 this.isPlaying = false;
-                this.currentParagraphId = null;
+                // 只更新当前段落的图标状态
                 this.updateParagraphIconState(paragraphId, 'ended');
+                this.currentParagraphId = null;
                 break;
                 
             case 'audioError':
                 this.isPlaying = false;
-                this.currentParagraphId = null;
+                // 只更新当前段落的图标状态
                 this.updateParagraphIconState(paragraphId, 'error');
+                this.currentParagraphId = null;
                 break;
         }
     }
@@ -252,7 +296,78 @@ class ReadifyBackground {
         return {
             isPlaying: this.isPlaying,
             hasAudio: false, // 音频现在在content script中播放
-            currentParagraphId: this.currentParagraphId
+            currentParagraphId: this.currentParagraphId,
+            currentParagraphIds: this.currentParagraphIds
+        };
+    }
+
+    // 生成缓存键
+    generateCacheKey(text, voice, speed) {
+        // 使用文本内容、语音和速度生成唯一的缓存键
+        const textHash = this.hashString(text);
+        return `${textHash}_${voice}_${speed}`;
+    }
+
+    // 简单的字符串哈希函数
+    hashString(str) {
+        let hash = 0;
+        if (str.length === 0) return hash.toString();
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        return Math.abs(hash).toString();
+    }
+
+    // 检查缓存中是否有音频
+    getCachedAudio(text, voice, speed) {
+        const cacheKey = this.generateCacheKey(text, voice, speed);
+        return this.audioCache.get(cacheKey);
+    }
+
+    // 将音频存储到缓存
+    cacheAudio(text, voice, speed, audioBlob) {
+        const cacheKey = this.generateCacheKey(text, voice, speed);
+        
+        // 如果缓存已满，删除最旧的条目
+        if (this.audioCache.size >= this.cacheSize) {
+            const firstKey = this.audioCache.keys().next().value;
+            this.audioCache.delete(firstKey);
+        }
+        
+        // 存储音频数据
+        this.audioCache.set(cacheKey, {
+            blob: audioBlob,
+            timestamp: Date.now(),
+            text: text.substring(0, 100) + '...' // 存储文本预览
+        });
+        
+        console.log(`音频已缓存，当前缓存大小: ${this.audioCache.size}`);
+    }
+
+    // 清理过期缓存
+    cleanExpiredCache() {
+        const now = Date.now();
+        const maxAge = 24 * 60 * 60 * 1000; // 24小时
+        
+        for (const [key, value] of this.audioCache.entries()) {
+            if (now - value.timestamp > maxAge) {
+                this.audioCache.delete(key);
+            }
+        }
+    }
+
+    // 获取缓存统计信息
+    getCacheStats() {
+        return {
+            size: this.audioCache.size,
+            maxSize: this.cacheSize,
+            entries: Array.from(this.audioCache.entries()).map(([key, value]) => ({
+                key: key,
+                text: value.text,
+                timestamp: value.timestamp
+            }))
         };
     }
 }

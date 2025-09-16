@@ -6,6 +6,7 @@ class ReadifyContent {
         this.icons = new Set(); // 跟踪已添加的图标
         this.paragraphIconsEnabled = false; // 段落图标是否启用
         this.currentAudio = null; // 当前播放的音频
+        this.playedElements = new Set(); // 跟踪已播放的元素
         this.initParagraphIcons();
     }
 
@@ -36,7 +37,7 @@ class ReadifyContent {
                     return true;
                 
                 case 'playAudio':
-                    this.playAudio(request.audioData, request.speed, request.paragraphId).then(sendResponse);
+                    this.playAudio(request.audioData, request.speed, request.paragraphId, request.paragraphIds).then(sendResponse);
                     return true;
                 
                 case 'stopAudio':
@@ -61,8 +62,8 @@ class ReadifyContent {
         document.addEventListener('selectionchange', () => {
             const selection = window.getSelection();
             if (selection && selection.toString().trim()) {
-                // 可以在这里添加高亮选中文字的功能
-                this.highlightSelection(selection);
+                // 暂时禁用自动高亮功能，避免影响文本复制
+                // this.highlightSelection(selection);
             }
         });
     }
@@ -81,7 +82,7 @@ class ReadifyContent {
             console.error('检查段落图标设置失败:', error);
         }
 
-        // 监听DOM变化，为新添加的段落添加图标
+        // 监听DOM变化，为新添加的文本元素添加图标
         this.observer = new MutationObserver((mutations) => {
             if (!this.paragraphIconsEnabled) return;
             
@@ -90,7 +91,11 @@ class ReadifyContent {
                 if (mutation.type === 'childList') {
                     mutation.addedNodes.forEach((node) => {
                         if (node.nodeType === Node.ELEMENT_NODE) {
-                            if (node.tagName === 'P' || node.querySelector('p')) {
+                            // 检查是否添加了段落或列表
+                            if (node.tagName === 'P' || 
+                                node.tagName === 'UL' || 
+                                node.tagName === 'OL' || 
+                                node.querySelector('p, ul, ol')) {
                                 shouldUpdate = true;
                             }
                         }
@@ -113,28 +118,34 @@ class ReadifyContent {
     addParagraphIcons() {
         if (!this.paragraphIconsEnabled) return;
         
-        const paragraphs = document.querySelectorAll('p');
+        // 获取所有文本元素（段落和列表）
+        const textElements = this.extractTextElements();
         
-        paragraphs.forEach((paragraph, index) => {
+        textElements.forEach((textElement, index) => {
+            const { element, type } = textElement;
+            
             // 检查是否已经添加过图标
-            if (paragraph.querySelector('.readify-speak-icon')) {
+            if (element.querySelector('.readify-speak-icon')) {
                 return;
             }
 
-            // 跳过太短的段落
-            if (paragraph.textContent.trim().length < 10) {
+            // 跳过太短的元素
+            if (element.textContent.trim().length < 10) {
                 return;
             }
 
-            // 为段落添加唯一ID
-            const paragraphId = `readify-p-${Date.now()}-${index}`;
-            paragraph.setAttribute('data-readify-id', paragraphId);
+            // 为元素添加唯一ID
+            const elementId = `readify-${type}-${Date.now()}-${index}`;
+            element.setAttribute('data-readify-id', elementId);
+
+            // 获取格式化后的文本
+            const formattedText = this.formatTextElement(textElement);
 
             // 创建喇叭图标
-            const icon = this.createSpeakIcon(paragraphId, paragraph.textContent.trim());
+            const icon = this.createSpeakIcon(elementId, formattedText);
             
-            // 将图标添加到段落末尾
-            paragraph.appendChild(icon);
+            // 将图标添加到元素末尾
+            element.appendChild(icon);
             this.icons.add(icon);
         });
     }
@@ -195,8 +206,59 @@ class ReadifyContent {
         }, 5000);
     }
 
+    // 显示通知
+    showNotification(message, type = 'info') {
+        // 创建通知元素
+        const notification = document.createElement('div');
+        notification.className = `readify-notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+
+        // 根据类型设置背景色
+        switch (type) {
+            case 'success':
+                notification.style.backgroundColor = '#28a745';
+                break;
+            case 'error':
+                notification.style.backgroundColor = '#dc3545';
+                break;
+            case 'info':
+            default:
+                notification.style.backgroundColor = '#667eea';
+                break;
+        }
+
+        // 添加到页面
+        document.body.appendChild(notification);
+
+        // 3秒后自动移除
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
     // 播放音频
-    async playAudio(audioData, speed, paragraphId) {
+    async playAudio(audioData, speed, paragraphId, paragraphIds = []) {
         try {
             // 停止当前播放的音频
             this.stopAudio();
@@ -214,7 +276,13 @@ class ReadifyContent {
             this.currentAudio.addEventListener('ended', () => {
                 // 通知background script播放结束
                 this.notifyBackgroundScript('audioEnded', paragraphId);
-                this.currentAudio = null;
+                
+                            // 标记当前元素为已播放
+            this.playedElements.add(paragraphId);
+            this.updateIconState(paragraphId, 'ended');
+            
+            console.log('播放完成，已播放元素:', Array.from(this.playedElements));
+            this.currentAudio = null;
             });
 
             this.currentAudio.addEventListener('error', (error) => {
@@ -245,6 +313,22 @@ class ReadifyContent {
             this.currentAudio.currentTime = 0;
             this.currentAudio.src = '';
             this.currentAudio = null;
+            
+            // 重置当前播放的图标状态
+            const playingIcons = document.querySelectorAll('.readify-speak-icon[data-playing="true"]');
+            playingIcons.forEach(icon => {
+                const paragraphId = icon.getAttribute('data-paragraph-id');
+                if (this.playedElements.has(paragraphId)) {
+                    // 如果已经播放过，恢复为已播放状态
+                    icon.innerHTML = '✅';
+                    icon.setAttribute('data-played', 'true');
+                } else {
+                    // 如果未播放过，恢复为默认状态
+                    icon.innerHTML = '🔊';
+                }
+                icon.style.opacity = '1';
+                icon.removeAttribute('data-playing');
+            });
         }
     }
 
@@ -275,7 +359,15 @@ class ReadifyContent {
         icon.className = 'readify-speak-icon';
         icon.setAttribute('data-paragraph-id', paragraphId);
         icon.setAttribute('data-text', text);
-        icon.innerHTML = '🔊';
+        
+        // 检查是否已经播放过
+        if (this.playedElements.has(paragraphId)) {
+            icon.innerHTML = '✅';
+            icon.setAttribute('data-played', 'true');
+        } else {
+            icon.innerHTML = '🔊';
+        }
+        
         icon.title = '点击朗读此段落';
         
         // 添加点击事件
@@ -288,9 +380,155 @@ class ReadifyContent {
         return icon;
     }
 
-    // 处理图标点击
+    // 获取准确的字符数量
+    getCharacterCount(text) {
+        if (!text) return 0;
+        
+        // 使用 Array.from() 来正确计算 Unicode 字符数量
+        const charCount = Array.from(text).length;
+        
+        // 调试信息
+        console.log('字符计数:', {
+            text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+            length: text.length,
+            charCount: charCount,
+            isChinese: /[\u4e00-\u9fff]/.test(text)
+        });
+        
+        return charCount;
+    }
+
+    // 检测文本语言并返回合适的目标字符数
+    getTargetCharCount(text) {
+        if (!text) return 450;
+        
+        // 检测是否包含中文字符
+        const hasChinese = /[\u4e00-\u9fff]/.test(text);
+        const hasJapanese = /[\u3040-\u309f\u30a0-\u30ff]/.test(text);
+        const hasKorean = /[\uac00-\ud7af]/.test(text);
+        
+        // 如果包含东亚语言字符，使用较小的目标字符数
+        if (hasChinese || hasJapanese || hasKorean) {
+            console.log('检测到东亚语言，使用较小的目标字符数: 200');
+            return 200;
+        }
+        
+        console.log('使用默认目标字符数: 450');
+        return 450;
+    }
+
+    // 合并文本元素直到达到目标字符数
+    async mergeParagraphs(startElementId, targetChars = null) {
+        try {
+            // 查找所有带有data-readify-id的文本元素（段落和列表）
+            const textElements = document.querySelectorAll('p[data-readify-id], ul[data-readify-id], ol[data-readify-id]');
+            const startIndex = Array.from(textElements).findIndex(el => el.getAttribute('data-readify-id') === startElementId);
+            
+            if (startIndex === -1) {
+                return {
+                    success: false,
+                    error: '找不到起始元素'
+                };
+            }
+
+            // 获取起始元素的文本内容来检测语言
+            const startElement = textElements[startIndex];
+            let startText = '';
+            if (startElement.tagName === 'P') {
+                startText = startElement.textContent.trim();
+            } else if (startElement.tagName === 'UL' || startElement.tagName === 'OL') {
+                startText = this.formatList(startElement);
+            }
+
+            // 如果没有指定目标字符数，根据语言自适应
+            if (targetChars === null) {
+                targetChars = this.getTargetCharCount(startText);
+            }
+
+            let mergedText = '';
+            let mergedElementIds = [];
+            let currentIndex = startIndex;
+            let totalCharCount = 0;
+
+            console.log('开始合并段落，目标字符数:', targetChars);
+
+            // 从起始元素开始，逐步添加元素直到达到目标字符数
+            while (currentIndex < textElements.length) {
+                const element = textElements[currentIndex];
+                const elementId = element.getAttribute('data-readify-id');
+                
+                // 根据元素类型获取格式化文本
+                let text = '';
+                if (element.tagName === 'P') {
+                    text = element.textContent.trim();
+                } else if (element.tagName === 'UL' || element.tagName === 'OL') {
+                    text = this.formatList(element);
+                }
+                
+                if (text) {
+                    const textCharCount = this.getCharacterCount(text);
+                    const separatorCharCount = this.getCharacterCount('\n\n');
+                    
+                    mergedText += text + '\n\n';
+                    mergedElementIds.push(elementId);
+                    totalCharCount += textCharCount + separatorCharCount;
+                    
+                    console.log('添加元素:', {
+                        elementId: elementId,
+                        textLength: text.length,
+                        charCount: textCharCount,
+                        totalCharCount: totalCharCount,
+                        targetChars: targetChars
+                    });
+                    
+                    // 如果累计字符数达到目标，停止合并
+                    if (totalCharCount >= targetChars) {
+                        console.log('达到目标字符数，停止合并');
+                        break;
+                    }
+                }
+                
+                currentIndex++;
+            }
+
+            // 如果合并后仍然没有达到目标字符数，但已经合并了多个元素，也继续
+            if (mergedElementIds.length === 0) {
+                return {
+                    success: false,
+                    error: '没有找到可合并的元素'
+                };
+            }
+
+            const finalCharCount = this.getCharacterCount(mergedText.trim());
+            console.log('合并完成:', {
+                elementCount: mergedElementIds.length,
+                finalCharCount: finalCharCount,
+                targetChars: targetChars
+            });
+
+            return {
+                success: true,
+                text: mergedText.trim(),
+                paragraphIds: mergedElementIds, // 保持向后兼容
+                elementIds: mergedElementIds,
+                lastParagraphId: mergedElementIds[mergedElementIds.length - 1], // 保持向后兼容
+                charCount: finalCharCount
+            };
+
+        } catch (error) {
+            console.error('合并文本元素失败:', error);
+            return {
+                success: false,
+                error: '合并文本元素时发生错误: ' + error.message
+            };
+        }
+    }
+
+    // 处理图标点击事件
     async handleIconClick(paragraphId, text) {
         try {
+            console.log('点击图标，段落ID:', paragraphId, '是否已播放:', this.playedElements.has(paragraphId));
+            
             // 显示加载状态
             const icon = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
             if (icon) {
@@ -310,20 +548,41 @@ class ReadifyContent {
                 return;
             }
 
+            // 合并段落（使用自适应目标字符数）
+            const mergeResult = await this.mergeParagraphs(paragraphId, null);
+            if (!mergeResult.success) {
+                console.error('合并段落失败:', mergeResult.error);
+                this.updateIconState(paragraphId, 'error');
+                return;
+            }
+
+            // 为当前元素显示加载状态
+            this.updateIconState(paragraphId, 'loading');
+
             // 发送消息给background script开始朗读
             const response = await chrome.runtime.sendMessage({
                 action: 'startTTS',
-                text: text,
+                text: mergeResult.text,
                 apiKey: settings.apiKey,
                 speed: settings.speed || 1.0,
                 voice: settings.voice || 'nova',
-                paragraphId: paragraphId
+                paragraphIds: mergeResult.paragraphIds,
+                lastParagraphId: mergeResult.lastParagraphId
             });
 
             if (!response.success) {
                 console.error('朗读失败:', response.error);
-                // 恢复图标状态
                 this.updateIconState(paragraphId, 'error');
+            } else {
+                // 为当前元素设置播放状态
+                this.updateIconState(paragraphId, 'playing');
+                
+                // 显示缓存状态信息
+                if (response.fromCache) {
+                    this.showNotification('使用缓存的音频', 'info');
+                } else {
+                    this.showNotification('生成新的音频', 'info');
+                }
             }
 
         } catch (error) {
@@ -336,40 +595,58 @@ class ReadifyContent {
     // 更新图标状态
     updateIconState(paragraphId, state) {
         const icon = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
-        if (!icon) return;
+        if (!icon) {
+            console.log('找不到图标:', paragraphId);
+            return;
+        }
+
+        console.log('更新图标状态:', paragraphId, state);
+
+        // 清除所有状态属性
+        icon.removeAttribute('data-loading');
+        icon.removeAttribute('data-playing');
+        icon.removeAttribute('data-played');
+        icon.removeAttribute('data-error');
 
         switch (state) {
             case 'loading':
                 icon.innerHTML = '⏳';
                 icon.style.opacity = '0.7';
                 icon.setAttribute('data-loading', 'true');
+                console.log('设置为加载状态');
                 break;
             
             case 'playing':
                 icon.innerHTML = '🔊';
                 icon.style.opacity = '1';
-                icon.setAttribute('data-loading', 'false');
-                icon.style.backgroundColor = '#4caf50';
+                icon.setAttribute('data-playing', 'true');
+                console.log('设置为播放状态');
                 break;
             
             case 'ended':
+                icon.innerHTML = '✅';
+                icon.style.opacity = '1';
+                icon.setAttribute('data-played', 'true');
+                console.log('设置为已播放状态');
+                break;
+            
             case 'stopped':
                 icon.innerHTML = '🔊';
                 icon.style.opacity = '1';
-                icon.setAttribute('data-loading', 'false');
-                icon.style.backgroundColor = '#667eea';
+                console.log('设置为停止状态');
                 break;
             
             case 'error':
                 icon.innerHTML = '❌';
                 icon.style.opacity = '1';
-                icon.setAttribute('data-loading', 'false');
-                icon.style.backgroundColor = '#f44336';
+                icon.setAttribute('data-error', 'true');
+                console.log('设置为错误状态');
                 // 3秒后恢复默认状态
                 setTimeout(() => {
                     if (icon) {
                         icon.innerHTML = '🔊';
-                        icon.style.backgroundColor = '#667eea';
+                        icon.removeAttribute('data-error');
+                        console.log('错误状态已恢复');
                     }
                 }, 3000);
                 break;
@@ -379,26 +656,21 @@ class ReadifyContent {
     // 朗读指定段落
     async readParagraph(paragraphId) {
         try {
-            const paragraph = document.querySelector(`[data-readify-id="${paragraphId}"]`);
-            if (!paragraph) {
+            // 使用段落合并功能
+            const mergeResult = await this.mergeParagraphs(paragraphId);
+            if (!mergeResult.success) {
                 return {
                     success: false,
-                    error: '找不到指定段落'
-                };
-            }
-
-            const text = paragraph.textContent.trim();
-            if (!text) {
-                return {
-                    success: false,
-                    error: '段落内容为空'
+                    error: mergeResult.error
                 };
             }
 
             return {
                 success: true,
-                text: text,
-                source: 'paragraph'
+                text: mergeResult.text,
+                source: 'merged-paragraphs',
+                paragraphIds: mergeResult.paragraphIds,
+                lastParagraphId: mergeResult.lastParagraphId
             };
 
         } catch (error) {
@@ -413,11 +685,11 @@ class ReadifyContent {
     // 提取页面文字
     async extractPageText() {
         try {
-            // 策略1: 尝试提取所有<p>标签的文字
-            const paragraphs = document.querySelectorAll('p');
-            if (paragraphs.length > 0) {
-                const text = Array.from(paragraphs)
-                    .map(p => p.textContent.trim())
+            // 策略1: 尝试提取所有<p>标签和列表的文字
+            const textElements = this.extractTextElements();
+            if (textElements.length > 0) {
+                const text = textElements
+                    .map(element => this.formatTextElement(element))
                     .filter(text => text.length > 10) // 过滤掉太短的段落
                     .join('\n\n');
                 
@@ -425,7 +697,7 @@ class ReadifyContent {
                     return {
                         success: true,
                         text: text,
-                        source: 'paragraphs'
+                        source: 'text-elements'
                     };
                 }
             }
@@ -462,6 +734,66 @@ class ReadifyContent {
                 error: '提取文字时发生错误: ' + error.message
             };
         }
+    }
+
+    // 提取文本元素（包括段落和列表）
+    extractTextElements() {
+        const elements = [];
+        
+        // 获取所有段落
+        const paragraphs = document.querySelectorAll('p');
+        paragraphs.forEach(p => {
+            if (p.textContent.trim().length > 10) {
+                elements.push({ element: p, type: 'paragraph' });
+            }
+        });
+        
+        // 获取所有列表
+        const lists = document.querySelectorAll('ul, ol');
+        lists.forEach(list => {
+            if (list.textContent.trim().length > 10) {
+                elements.push({ element: list, type: 'list' });
+            }
+        });
+        
+        // 按DOM位置排序
+        elements.sort((a, b) => {
+            const aRect = a.element.getBoundingClientRect();
+            const bRect = b.element.getBoundingClientRect();
+            return aRect.top - bRect.top;
+        });
+        
+        return elements;
+    }
+
+    // 格式化文本元素
+    formatTextElement(textElement) {
+        const { element, type } = textElement;
+        
+        if (type === 'paragraph') {
+            return element.textContent.trim();
+        } else if (type === 'list') {
+            return this.formatList(element);
+        }
+        
+        return element.textContent.trim();
+    }
+
+    // 格式化列表
+    formatList(listElement) {
+        const items = listElement.querySelectorAll('li');
+        const isOrdered = listElement.tagName === 'OL';
+        
+        return Array.from(items)
+            .map((item, index) => {
+                const itemText = item.textContent.trim();
+                if (isOrdered) {
+                    return `${index + 1}. ${itemText}`;
+                } else {
+                    return `• ${itemText}`;
+                }
+            })
+            .join('\n');
     }
 
     // 提取主要内容区域
@@ -534,11 +866,18 @@ class ReadifyContent {
                 };
             }
 
-            // 限制选中文字的长度
+            // 使用准确的字符计数限制选中文字的长度
             const maxLength = 2000;
-            const text = selectedText.length > maxLength 
-                ? selectedText.substring(0, maxLength) + '...'
+            const charCount = this.getCharacterCount(selectedText);
+            const text = charCount > maxLength 
+                ? Array.from(selectedText).slice(0, maxLength).join('') + '...'
                 : selectedText;
+
+            console.log('选中文字字符计数:', {
+                originalLength: selectedText.length,
+                charCount: charCount,
+                finalLength: text.length
+            });
 
             return {
                 success: true,
@@ -561,25 +900,58 @@ class ReadifyContent {
         const existingHighlights = document.querySelectorAll('.readify-highlight');
         existingHighlights.forEach(el => {
             const parent = el.parentNode;
-            parent.replaceChild(document.createTextNode(el.textContent), el);
-            parent.normalize();
+            if (parent) {
+                parent.replaceChild(document.createTextNode(el.textContent), el);
+                parent.normalize();
+            }
         });
 
-        // 添加新的高亮
+        // 添加新的高亮（使用更安全的方法）
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
-            const span = document.createElement('span');
-            span.className = 'readify-highlight';
-            span.style.backgroundColor = '#ffeb3b';
-            span.style.padding = '2px 4px';
-            span.style.borderRadius = '3px';
             
-            try {
-                range.surroundContents(span);
-            } catch (e) {
-                // 如果surroundContents失败，尝试其他方法
-                console.log('高亮选中文字失败:', e);
+            // 检查是否可以安全地添加高亮
+            if (this.canSafelyHighlight(range)) {
+                const span = document.createElement('span');
+                span.className = 'readify-highlight';
+                span.style.backgroundColor = '#ffeb3b';
+                span.style.padding = '2px 4px';
+                span.style.borderRadius = '3px';
+                span.style.display = 'inline';
+                span.style.userSelect = 'text'; // 确保文本可以被选择
+                
+                try {
+                    range.surroundContents(span);
+                } catch (e) {
+                    console.log('高亮选中文字失败:', e);
+                }
             }
+        }
+    }
+
+    // 检查是否可以安全地添加高亮
+    canSafelyHighlight(range) {
+        try {
+            // 检查是否在可编辑元素内
+            const container = range.commonAncestorContainer;
+            if (container.nodeType === Node.ELEMENT_NODE) {
+                const element = container;
+                if (element.contentEditable === 'true' || 
+                    element.tagName === 'INPUT' || 
+                    element.tagName === 'TEXTAREA') {
+                    return false;
+                }
+            }
+            
+            // 检查是否在表单元素内
+            const formElements = range.commonAncestorContainer.parentElement?.closest('form');
+            if (formElements) {
+                return false;
+            }
+            
+            return true;
+        } catch (e) {
+            return false;
         }
     }
 }

@@ -163,6 +163,32 @@ header p {
     border-color: #667eea;
 }
 
+/* 推荐选项样式 */
+#voiceSelect option[value="nova"],
+#voiceSelect option[value="sage"],
+#voiceSelect option[value="fable"] {
+    font-weight: bold;
+    color: #667eea;
+}
+
+/* 女声选项样式 */
+#voiceSelect option[value="nova"],
+#voiceSelect option[value="sage"],
+#voiceSelect option[value="shimmer"],
+#voiceSelect option[value="alloy"],
+#voiceSelect option[value="coral"] {
+    background-color: #fff5f5;
+}
+
+/* 男声选项样式 */
+#voiceSelect option[value="fable"],
+#voiceSelect option[value="onyx"],
+#voiceSelect option[value="echo"],
+#voiceSelect option[value="ballad"],
+#voiceSelect option[value="verse"] {
+    background-color: #f0f8ff;
+}
+
 .control-buttons {
     display: flex;
     flex-direction: column;
@@ -325,4 +351,53 @@ header p {
 
 .checkbox-label input:checked ~ .checkmark:after {
     display: block;
+}
+
+/* 缓存管理样式 */
+.cache-info {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #e1e5e9;
+}
+
+.cache-info p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.cache-info span {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.cache-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.cache-controls .secondary-btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+/* 缓存状态指示器 */
+#cacheStatus {
+    transition: color 0.3s;
+}
+
+#cacheStatus.loaded {
+    color: #28a745;
+}
+
+#cacheStatus.empty {
+    color: #6c757d;
+}
+
+#cacheStatus.error {
+    color: #dc3545;
 } 

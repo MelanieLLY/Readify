@@ -52,6 +52,42 @@
     animation: pulse 1.5s infinite !important;
 }
 
+/* 播放中状态 */
+.readify-speak-icon[data-playing="true"] {
+    background-color: #4caf50 !important;
+    color: white !important;
+}
+
+.readify-speak-icon[data-playing="true"]:hover {
+    background-color: #45a049 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+}
+
+/* 已播放状态 */
+.readify-speak-icon[data-played="true"] {
+    background-color: #8bc34a !important;
+    color: white !important;
+}
+
+.readify-speak-icon[data-played="true"]:hover {
+    background-color: #7cb342 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 2px 8px rgba(139, 195, 74, 0.3) !important;
+}
+
+/* 错误状态 */
+.readify-speak-icon[data-error="true"] {
+    background-color: #f44336 !important;
+    color: white !important;
+}
+
+.readify-speak-icon[data-error="true"]:hover {
+    background-color: #d32f2f !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3) !important;
+}
+
 /* 脉冲动画 */
 @keyframes pulse {
     0% {

@@ -39,12 +39,16 @@
             <div class="setting-item">
                 <label for="voiceSelect">语音选择:</label>
                 <select id="voiceSelect">
-                    <option value="nova">Nova (推荐)</option>
-                    <option value="alloy">Alloy</option>
-                    <option value="echo">Echo</option>
-                    <option value="fable">Fable</option>
-                    <option value="onyx">Onyx</option>
-                    <option value="shimmer">Shimmer</option>
+                    <option value="nova">Nova - 女声 (推荐)</option>
+                    <option value="sage">Sage - 女声 (推荐)</option>
+                    <option value="shimmer">Shimmer - 女声</option>
+                    <option value="alloy">Alloy - 女声</option>
+                    <option value="coral">Coral - 女声</option>
+                    <option value="fable">Fable - 男声 (推荐)</option>
+                    <option value="onyx">Onyx - 男声</option>
+                    <option value="echo">Echo - 男声</option>
+                    <option value="ballad">Ballad - 男声</option>
+                    <option value="verse">Verse - 男声</option>
                 </select>
             </div>
         </div>
@@ -68,6 +72,19 @@
                 </label>
                 <p class="hint">启用后，每个段落末尾会显示喇叭图标，点击即可朗读该段落</p>
             </div>
+        </div>
+
+        <div class="section">
+            <h3>音频缓存管理</h3>
+            <div class="cache-info">
+                <p>缓存状态: <span id="cacheStatus">加载中...</span></p>
+                <p>缓存条目: <span id="cacheCount">-</span></p>
+            </div>
+            <div class="cache-controls">
+                <button id="clearCache" class="secondary-btn">清空缓存</button>
+                <button id="cleanExpiredCache" class="secondary-btn">清理过期</button>
+            </div>
+            <p class="hint">音频缓存可以避免重复调用API，提升响应速度</p>
         </div>
 
 

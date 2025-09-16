@@ -18,6 +18,12 @@ class ReadifyPopup {
         this.stopReadingBtn = document.getElementById('stopReading');
         this.showParagraphIconsCheckbox = document.getElementById('showParagraphIcons');
         this.statusDiv = document.getElementById('status');
+        
+        // 缓存管理元素
+        this.cacheStatus = document.getElementById('cacheStatus');
+        this.cacheCount = document.getElementById('cacheCount');
+        this.clearCacheBtn = document.getElementById('clearCache');
+        this.cleanExpiredCacheBtn = document.getElementById('cleanExpiredCache');
     }
 
     // 绑定事件监听器
@@ -44,6 +50,10 @@ class ReadifyPopup {
         this.readPageBtn.addEventListener('click', () => this.readPageText());
         this.readSelectionBtn.addEventListener('click', () => this.readSelectedText());
         this.stopReadingBtn.addEventListener('click', () => this.stopReading());
+        
+        // 缓存管理按钮
+        this.clearCacheBtn.addEventListener('click', () => this.clearCache());
+        this.cleanExpiredCacheBtn.addEventListener('click', () => this.cleanExpiredCache());
     }
 
     // 加载保存的设置
@@ -73,6 +83,9 @@ class ReadifyPopup {
             if (result.showParagraphIcons !== undefined) {
                 this.showParagraphIconsCheckbox.checked = result.showParagraphIcons;
             }
+            
+            // 加载缓存状态
+            this.loadCacheStats();
             
         } catch (error) {
             console.error('加载设置失败:', error);
@@ -275,12 +288,66 @@ class ReadifyPopup {
         this.statusDiv.textContent = message;
         this.statusDiv.className = `status ${type}`;
         
-        // 3秒后自动清除成功和错误消息
-        if (type === 'success' || type === 'error') {
-            setTimeout(() => {
-                this.statusDiv.textContent = '';
-                this.statusDiv.className = 'status';
-            }, 3000);
+        // 3秒后清除状态
+        setTimeout(() => {
+            this.statusDiv.textContent = '';
+            this.statusDiv.className = 'status';
+        }, 3000);
+    }
+
+    // 加载缓存统计信息
+    async loadCacheStats() {
+        try {
+            const stats = await chrome.runtime.sendMessage({ action: 'getCacheStats' });
+            this.updateCacheDisplay(stats);
+        } catch (error) {
+            console.error('加载缓存统计失败:', error);
+            this.updateCacheDisplay({ size: 0, maxSize: 50, entries: [] });
+        }
+    }
+
+    // 更新缓存显示
+    updateCacheDisplay(stats) {
+        this.cacheCount.textContent = `${stats.size}/${stats.maxSize}`;
+        
+        if (stats.size === 0) {
+            this.cacheStatus.textContent = '空';
+            this.cacheStatus.className = 'empty';
+        } else {
+            this.cacheStatus.textContent = '已加载';
+            this.cacheStatus.className = 'loaded';
+        }
+    }
+
+    // 清空缓存
+    async clearCache() {
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'clearCache' });
+            if (response.success) {
+                this.showStatus('缓存已清空', 'success');
+                this.loadCacheStats(); // 重新加载缓存状态
+            } else {
+                this.showStatus('清空缓存失败', 'error');
+            }
+        } catch (error) {
+            console.error('清空缓存失败:', error);
+            this.showStatus('清空缓存失败', 'error');
+        }
+    }
+
+    // 清理过期缓存
+    async cleanExpiredCache() {
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'cleanExpiredCache' });
+            if (response.success) {
+                this.showStatus('过期缓存已清理', 'success');
+                this.loadCacheStats(); // 重新加载缓存状态
+            } else {
+                this.showStatus('清理过期缓存失败', 'error');
+            }
+        } catch (error) {
+            console.error('清理过期缓存失败:', error);
+            this.showStatus('清理过期缓存失败', 'error');
         }
     }
 }
