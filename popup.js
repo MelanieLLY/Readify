@@ -410,6 +410,7 @@ class ReadifyPopup {
             const response = await chrome.runtime.sendMessage({
                 action: 'startReading',
                 text: contentRes.fullText,
+                pageTitle: contentRes.title || tab.title || '',
                 mode: isSummary ? 'summary' : 'full',
                 apiKey: apiKey,
                 voice: this.voiceSelect.value,
@@ -477,6 +478,7 @@ class ReadifyPopup {
             const response = await chrome.runtime.sendMessage({
                 action: 'startReading',
                 text: selRes.text,
+                pageTitle: tab.title || '',
                 mode: 'selection',
                 apiKey: apiKey,
                 voice: this.voiceSelect.value,

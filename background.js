@@ -121,19 +121,20 @@ class ReadifyBackground {
             if (!selectedText || !tab || tab.id === undefined || tab.id < 0) return;
 
             if (info.menuItemId === 'readify_read_snippet') {
-                this.startReadingWithSelectedText(selectedText, tab.id, 'snippet');
+                this.startReadingWithSelectedText(selectedText, tab.id, 'snippet', tab.title || '');
             }
         });
     }
 
     // 右键启动朗读辅助
-    async startReadingWithSelectedText(text, tabId, mode = 'snippet') {
+    async startReadingWithSelectedText(text, tabId, mode = 'snippet', pageTitle = '') {
         const settings = await chrome.storage.sync.get(['speed']);
         const res = await this.startReading({
             text: text,
             mode: mode, // 'snippet' (词句快速发音)
             speed: settings.speed || 0.85,
-            tabId: tabId
+            tabId: tabId,
+            pageTitle: pageTitle
         });
         if (!res.success && res.reported !== true) {
             chrome.tabs.sendMessage(tabId, {
@@ -239,6 +240,7 @@ class ReadifyBackground {
 
             this.currentSpeed = parseFloat(speed) || 0.85;
             this.currentSourceType = mode;
+            this.activeTabTitle = request.pageTitle || (sender && sender.tab ? sender.tab.title : '') || '';
 
             // 先停止当前朗读
             await this.stopReading(false);
@@ -459,7 +461,10 @@ class ReadifyBackground {
                 chunkIndex: index,
                 totalChunks: this.playlist.length,
                 elementId: chunk.elementId,
-                fromCache: fromCache
+                fromCache: fromCache,
+                // 供 Chrome 媒体控制面板显示
+                title: chunk.text.replace(/\s+/g, ' ').slice(0, 80),
+                pageTitle: this.activeTabTitle
             }
         });
 

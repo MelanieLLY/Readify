@@ -217,6 +217,7 @@
                 text: text,
                 mode: 'paragraph',
                 targetParagraphId: elementId,
+                pageTitle: document.title,
                 speed: settings.speed || 1.0
             }).then((res) => {
                 if (res && !res.success) {
@@ -388,6 +389,7 @@
                     .track {
                         flex: 1;
                         height: 6px;
+                        touch-action: none;
                         background: #e2e8f0;
                         border-radius: 9999px;
                         cursor: pointer;
@@ -521,7 +523,7 @@
                     </div>
                     <div class="content-preview" id="snippetText">准备朗读...</div>
                     <div class="progress-row">
-                        <div class="track disabled" id="progressTrack" title="点击跳转到当前片段的对应位置">
+                        <div class="track disabled" id="progressTrack" title="点击或拖动跳转到当前片段的对应位置">
                             <div class="fill" id="progressFill"></div>
                         </div>
                         <span class="time-label" id="timeLabel">0:00 / 0:00</span>
@@ -571,15 +573,48 @@
                 chrome.runtime.sendMessage({ action: 'setSpeed', speed: nextSpeed });
             });
 
-            // 点击进度条跳转（仅限当前片段）
-            shadow.getElementById('progressTrack').addEventListener('click', (e) => {
+            // 进度条：点击或按住拖动跳转（仅限当前片段），拖动时本地预览，松手才发送跳转
+            const track = shadow.getElementById('progressTrack');
+            const seekable = () => {
                 const { state } = this.currentStatus;
-                const duration = this.progressDuration;
-                if (!(state === 'playing' || state === 'paused') || !Number.isFinite(duration) || duration <= 0) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-                chrome.runtime.sendMessage({ action: 'seekReading', time: ratio * duration });
+                return (state === 'playing' || state === 'paused') && Number.isFinite(this.progressDuration) && this.progressDuration > 0;
+            };
+            const ratioAt = (clientX) => {
+                const rect = track.getBoundingClientRect();
+                return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+            };
+            const preview = (ratio) => {
+                shadow.getElementById('progressFill').style.width = `${(ratio * 100).toFixed(1)}%`;
+                shadow.getElementById('timeLabel').textContent =
+                    `${this.formatTime(ratio * this.progressDuration)} / ${this.formatTime(this.progressDuration)}`;
+            };
+
+            track.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0 || !seekable()) return;
+                this.scrubbing = { id: e.pointerId, ratio: ratioAt(e.clientX) };
+                track.setPointerCapture(e.pointerId);
+                preview(this.scrubbing.ratio);
+                e.preventDefault();
             });
+            track.addEventListener('pointermove', (e) => {
+                if (!this.scrubbing || e.pointerId !== this.scrubbing.id) return;
+                this.scrubbing.ratio = ratioAt(e.clientX);
+                preview(this.scrubbing.ratio);
+            });
+            const endScrub = (e, commit) => {
+                if (!this.scrubbing || e.pointerId !== this.scrubbing.id) return;
+                const { ratio } = this.scrubbing;
+                this.scrubbing = null;
+                if (commit && seekable()) {
+                    const time = ratio * this.progressDuration;
+                    this.progressTime = time;
+                    chrome.runtime.sendMessage({ action: 'seekReading', time });
+                } else {
+                    this.updateProgress(this.currentStatus);
+                }
+            };
+            track.addEventListener('pointerup', (e) => endScrub(e, true));
+            track.addEventListener('pointercancel', (e) => endScrub(e, false));
 
             this.initDragging();
         }
@@ -681,6 +716,7 @@
                 this.progressTime = 0;
             }
             const staleMeta = status.meta && status.meta.chunkIndex !== undefined && status.meta.chunkIndex !== status.chunkIndex;
+            if (this.scrubbing) return; // 拖动中保持用户的预览位置
             if (typeof status.currentTime === 'number' && !staleMeta) {
                 this.progressTime = status.currentTime;
                 this.progressDuration = status.duration;
