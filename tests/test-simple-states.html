@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简化状态管理测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .content-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .debug-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+        .color-legend {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .blue { background-color: #667eea; }
+        .green { background-color: #4caf50; }
+        .light-green { background-color: #8bc34a; }
+        .orange { background-color: #ff9800; }
+        .red { background-color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>简化状态管理测试</h1>
+    
+    <div class="info">
+        <h3>测试说明</h3>
+        <p>这个页面用于测试简化的播放状态管理功能。每个段落独立管理状态：</p>
+        
+        <div class="color-legend">
+            <div class="legend-item">
+                <div class="legend-color blue"></div>
+                <span>默认状态（未播放）</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color orange"></div>
+                <span>加载中</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color green"></div>
+                <span>播放中</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color light-green"></div>
+                <span>已播放完成</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color red"></div>
+                <span>错误状态</span>
+            </div>
+        </div>
+        
+        <div class="debug-info">
+            <strong>调试信息：</strong>打开浏览器控制台查看详细的播放状态日志
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景1：独立段落</h2>
+        
+        <div class="content-block">
+            <p>这是第一个段落，用于测试独立的状态管理。点击喇叭图标后，只有这个段落的颜色会改变。</p>
+            <div class="debug-info">段落ID: readify-p-1 | 状态: 未播放</div>
+        </div>
+        
+        <div class="content-block">
+            <p>这是第二个段落，也是独立的。每个段落都有自己的播放状态。</p>
+            <div class="debug-info">段落ID: readify-p-2 | 状态: 未播放</div>
+        </div>
+        
+        <div class="content-block">
+            <p>这是第三个段落，继续测试独立状态管理。</p>
+            <div class="debug-info">段落ID: readify-p-3 | 状态: 未播放</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景2：列表元素</h2>
+        
+        <div class="content-block">
+            <h3>购物清单</h3>
+            <ul>
+                <li>苹果</li>
+                <li>牛奶</li>
+                <li>面包</li>
+                <li>鸡蛋</li>
+            </ul>
+            <div class="debug-info">列表ID: readify-list-1 | 状态: 未播放</div>
+        </div>
+        
+        <div class="content-block">
+            <h3>制作步骤</h3>
+            <ol>
+                <li>准备材料</li>
+                <li>预热烤箱</li>
+                <li>混合材料</li>
+                <li>烘烤</li>
+            </ol>
+            <div class="debug-info">列表ID: readify-list-2 | 状态: 未播放</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景3：状态持久化</h2>
+        
+        <div class="content-block">
+            <p>这个段落用于测试状态持久化。播放完成后，图标应该保持浅绿色状态，即使页面刷新也不会改变。</p>
+            <div class="debug-info">段落ID: readify-p-4 | 状态: 未播放</div>
+        </div>
+        
+        <div class="content-block">
+            <p>这个段落也应该独立管理状态。</p>
+            <div class="debug-info">段落ID: readify-p-5 | 状态: 未播放</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景4：重新播放</h2>
+        
+        <div class="content-block">
+            <p>这个段落用于测试重新播放功能。即使已经播放过，也可以再次点击播放。</p>
+            <div class="debug-info">段落ID: readify-p-6 | 状态: 未播放</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>操作说明</h2>
+        
+        <ol>
+            <li><strong>启用段落图标</strong>：在扩展设置中开启段落图标功能</li>
+            <li><strong>点击播放</strong>：点击任意段落或列表旁的喇叭图标</li>
+            <li><strong>观察状态</strong>：观察图标颜色的变化过程</li>
+            <li><strong>查看控制台</strong>：打开浏览器控制台查看调试信息</li>
+            <li><strong>重新播放</strong>：点击已播放的段落，观察状态变化</li>
+        </ol>
+        
+        <div class="debug-info">
+            <strong>预期行为：</strong>
+            <ul>
+                <li>点击时：橙色（加载中）</li>
+                <li>播放时：绿色（播放中）</li>
+                <li>播放完成：浅绿色（已播放）</li>
+                <li>错误时：红色（错误状态）</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 添加调试信息
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('简化状态管理测试页面已加载');
+            console.log('请启用段落图标功能并点击喇叭图标进行测试');
+            
+            // 监听图标点击事件
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('readify-speak-icon')) {
+                    console.log('检测到图标点击:', e.target);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

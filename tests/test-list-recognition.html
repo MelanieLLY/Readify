@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列表识别功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .unordered-list {
+            background-color: #f0f8ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #4CAF50;
+        }
+        .ordered-list {
+            background-color: #fff8f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #FF9800;
+        }
+        .mixed-content {
+            background-color: #f8f0ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #9C27B0;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .character-count {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>列表识别功能测试</h1>
+    
+    <div class="info">
+        <h3>测试说明</h3>
+        <p>这个页面用于测试列表识别功能。每个列表都有不同长度，点击列表后的喇叭图标应该会：</p>
+        <ul>
+            <li>正确识别无序列表（ul）和有序列表（ol）</li>
+            <li>格式化列表内容，添加项目符号或数字</li>
+            <li>为列表添加朗读图标</li>
+            <li>正确处理混合内容（段落+列表）</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景1：无序列表</h2>
+        
+        <div class="unordered-list">
+            <h3>购物清单</h3>
+            <ul>
+                <li>苹果 - 新鲜的红苹果，最好是富士苹果</li>
+                <li>牛奶 - 全脂牛奶，2升装</li>
+                <li>面包 - 全麦面包，切片装</li>
+                <li>鸡蛋 - 有机鸡蛋，12个装</li>
+                <li>蔬菜 - 胡萝卜、西兰花、菠菜</li>
+            </ul>
+            <div class="character-count">字符数：约150个</div>
+        </div>
+        
+        <div class="unordered-list">
+            <h3>待办事项</h3>
+            <ul>
+                <li>完成项目报告</li>
+                <li>回复客户邮件</li>
+                <li>准备会议材料</li>
+            </ul>
+            <div class="character-count">字符数：约80个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景2：有序列表</h2>
+        
+        <div class="ordered-list">
+            <h3>制作步骤</h3>
+            <ol>
+                <li>准备所有必要的材料</li>
+                <li>预热烤箱到180度</li>
+                <li>混合干性材料</li>
+                <li>搅拌湿性材料</li>
+                <li>将湿性和干性材料混合</li>
+                <li>倒入烤盘</li>
+                <li>烘烤25-30分钟</li>
+                <li>冷却后享用</li>
+            </ol>
+            <div class="character-count">字符数：约200个</div>
+        </div>
+        
+        <div class="ordered-list">
+            <h3>优先级排序</h3>
+            <ol>
+                <li>紧急且重要</li>
+                <li>重要但不紧急</li>
+                <li>紧急但不重要</li>
+                <li>既不紧急也不重要</li>
+            </ol>
+            <div class="character-count">字符数：约100个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景3：混合内容</h2>
+        
+        <div class="mixed-content">
+            <p>这是一个包含段落和列表的混合内容区域。首先是一个段落，然后是列表。</p>
+            
+            <h3>功能特点</h3>
+            <ul>
+                <li>支持多种文本格式</li>
+                <li>智能识别段落和列表</li>
+                <li>自动格式化内容</li>
+                <li>提供朗读功能</li>
+            </ul>
+            
+            <p>这是列表后面的另一个段落，用于测试混合内容的处理。</p>
+            
+            <h3>使用步骤</h3>
+            <ol>
+                <li>打开网页</li>
+                <li>启用朗读功能</li>
+                <li>点击喇叭图标</li>
+                <li>享受朗读体验</li>
+            </ol>
+            
+            <div class="character-count">字符数：约300个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景4：嵌套列表</h2>
+        
+        <div class="unordered-list">
+            <h3>网站结构</h3>
+            <ul>
+                <li>首页
+                    <ul>
+                        <li>导航菜单</li>
+                        <li>主要内容</li>
+                        <li>侧边栏</li>
+                    </ul>
+                </li>
+                <li>产品页面
+                    <ul>
+                        <li>产品列表</li>
+                        <li>产品详情</li>
+                        <li>购物车</li>
+                    </ul>
+                </li>
+                <li>关于我们
+                    <ul>
+                        <li>公司介绍</li>
+                        <li>团队信息</li>
+                        <li>联系方式</li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="character-count">字符数：约250个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景5：短列表</h2>
+        
+        <div class="unordered-list">
+            <ul>
+                <li>项目A</li>
+                <li>项目B</li>
+            </ul>
+            <div class="character-count">字符数：约20个</div>
+        </div>
+        
+        <div class="ordered-list">
+            <ol>
+                <li>第一步</li>
+                <li>第二步</li>
+                <li>第三步</li>
+            </ol>
+            <div class="character-count">字符数：约30个</div>
+        </div>
+    </div>
+
+    <script>
+        // 添加字符计数功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const lists = document.querySelectorAll('ul, ol');
+            lists.forEach((list, index) => {
+                const charCount = list.textContent.length;
+                console.log(`列表 ${index + 1}: ${charCount} 字符`);
+            });
+        });
+    </script>
+</body>
+</html> 

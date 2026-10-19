@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>Mini player 进度条/拖动测试</title>
+<link rel="stylesheet" href="../content.css">
+<body style="height:2000px;font-family:sans-serif"><article><p data-readify-id="p1">第一段测试文字，内容足够长，用来测试高亮和滚动行为是否正常。</p></article>
+<script>
+window.__sent=[];window.__listeners=[];const store={};
+window.chrome={runtime:{onMessage:{addListener:f=>__listeners.push(f)},sendMessage:m=>{__sent.push(m);return Promise.resolve({success:true})}},
+ storage:{sync:{get:async()=>({})},local:{get:async k=>({[k]:store[k]}),set:async o=>Object.assign(store,o),remove:async k=>{delete store[k]}}}};
+window.__store=store;
+window.send=m=>__listeners.forEach(f=>f(m,{},()=>{}));
+</script>
+<script src="../content.js"></script>

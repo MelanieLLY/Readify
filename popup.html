@@ -7,89 +7,174 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Readify</h1>
-            <p>网页文字朗读助手</p>
-        </header>
-
-        <div class="section">
-            <h3>OpenAI API Key</h3>
-            <div class="api-key-section">
-                <input type="password" id="apiKey" placeholder="请输入OpenAI API Key" />
-                <button id="saveApiKey">保存</button>
-            </div>
-            <p class="hint">API Key将安全存储在本地，仅用于TTS功能</p>
-        </div>
-        <div class="section">
-            <div id="status" class="status"></div>
-        </div>
-        <div class="section">
-            <h3>朗读设置</h3>
-            <div class="setting-item">
-                <label for="speedSlider">语速调节: <span id="speedValue">1.0x</span></label>
-                <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" />
-                <div class="speed-indicator">
-                    <span class="speed-label">慢</span>
-                    <span class="speed-label">正常</span>
-                    <span class="speed-label">快</span>
+    <div class="popup-wrapper">
+        <!-- 顶部导航 -->
+        <header class="app-header">
+            <div class="logo-area">
+                <img src="icons/icon32.png" alt="Readify" class="logo-img" width="28" height="28" />
+                <div>
+                    <h1 class="logo-title">Readify</h1>
+                    <span class="logo-subtitle">AI 智能网页伴读助手 v2.1</span>
                 </div>
             </div>
-            
-            <div class="setting-item">
-                <label for="voiceSelect">语音选择:</label>
-                <select id="voiceSelect">
-                    <option value="nova">Nova - 女声 (推荐)</option>
-                    <option value="sage">Sage - 女声 (推荐)</option>
-                    <option value="shimmer">Shimmer - 女声</option>
-                    <option value="alloy">Alloy - 女声</option>
-                    <option value="coral">Coral - 女声</option>
-                    <option value="fable">Fable - 男声 (推荐)</option>
-                    <option value="onyx">Onyx - 男声</option>
-                    <option value="echo">Echo - 男声</option>
-                    <option value="ballad">Ballad - 男声</option>
-                    <option value="verse">Verse - 男声</option>
+            <div id="statusTag" class="status-tag idle">就绪</div>
+        </header>
+
+        <!-- 实时播放控制台（当处于播放或暂停时显现） -->
+        <section id="playerDeck" class="card player-deck" style="display: none;">
+            <div class="deck-header">
+                <span id="deckModeBadge" class="deck-badge">🔊 正在朗读</span>
+                <span id="deckProgress">1 / 1</span>
+            </div>
+            <div id="deckSnippet" class="deck-snippet">正在准备朗读内容...</div>
+            <div class="deck-controls">
+                <button id="deckPrevBtn" class="deck-btn" title="上一段">⏮</button>
+                <button id="deckPlayPauseBtn" class="deck-btn primary">⏸ 暂停</button>
+                <button id="deckNextBtn" class="deck-btn" title="下一段">⏭</button>
+                <button id="deckStopBtn" class="deck-btn danger" title="停止">⏹ 停止</button>
+            </div>
+        </section>
+
+        <!-- 核心朗读操作区 -->
+        <section class="card action-card">
+            <h3 class="card-title">网页朗读</h3>
+            <div class="action-grid">
+                <button id="readPageBtn" class="btn btn-primary">
+                    <span class="btn-icon">📖</span>
+                    <span>朗读整页正文</span>
+                </button>
+                <button id="summaryPageBtn" class="btn btn-ai">
+                    <span class="btn-icon">✨</span>
+                    <span>AI 摘要速读 <small>(GPT-5.6-Luna)</small></span>
+                </button>
+            </div>
+            <button id="readSelectionBtn" class="btn btn-secondary full-width">
+                <span class="btn-icon">✂️</span>
+                <span>朗读选中文本</span>
+            </button>
+        </section>
+
+        <!-- 模型与语音配置 -->
+        <section class="card">
+            <h3 class="card-title">模型与音色</h3>
+
+            <div class="form-group">
+                <label for="ttsProvider">朗读引擎</label>
+                <select id="ttsProvider" class="form-select">
+                    <option value="openai">OpenAI</option>
+                    <option value="elevenlabs">ElevenLabs</option>
                 </select>
             </div>
-        </div>
 
-        <div class="section">
-            <h3>朗读控制</h3>
-            <div class="control-buttons">
-                <button id="readPage" class="primary-btn">朗读页面文字</button>
-                <button id="readSelection" class="secondary-btn">朗读选中文字</button>
-                <button id="stopReading" class="danger-btn" disabled>停止朗读</button>
+            <div id="elevenSettings" style="display: none;">
+                <div class="form-group">
+                    <div class="label-with-value">
+                        <label for="elevenModel">ElevenLabs 模型</label>
+                        <button id="probeElevenModels" class="btn btn-sm" type="button" title="对每个模型发送 1 个字符的试读请求，约消耗几个字符额度">检测可用</button>
+                    </div>
+                    <select id="elevenModel" class="form-select">
+                        <option value="eleven_flash_v2_5">eleven_flash_v2_5 (极速 · 价格减半 · 推荐)</option>
+                        <option value="eleven_multilingual_v2">eleven_multilingual_v2 (长文最稳定)</option>
+                        <option value="eleven_v4_turbo">eleven_v4_turbo (新一代 · 低延迟)</option>
+                        <option value="eleven_v4">eleven_v4 (新一代 · 表现力最强)</option>
+                    </select>
+                    <span id="elevenAccountInfo" class="form-hint">模型不可用时会自动切换到可用模型</span>
+                </div>
+                <div class="form-group">
+                    <div class="label-with-value">
+                        <label for="elevenVoice">ElevenLabs 音色</label>
+                        <button id="refreshElevenVoices" class="btn btn-sm" type="button">刷新音色</button>
+                    </div>
+                    <select id="elevenVoice" class="form-select">
+                        <option value="">保存 ElevenLabs Key 后自动加载</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div class="section">
-            <h3>段落朗读功能</h3>
-            <div class="setting-item">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="showParagraphIcons" />
-                    <span class="checkmark"></span>
-                    在段落末尾显示朗读图标
-                </label>
-                <p class="hint">启用后，每个段落末尾会显示喇叭图标，点击即可朗读该段落</p>
+            <div id="openaiSettings">
+            <div class="form-group">
+                <label for="ttsModel">TTS 合成模型</label>
+                <select id="ttsModel" class="form-select">
+                    <option value="tts-1">tts-1 (标准极速 · 推荐)</option>
+                    <option value="tts-1-hd">tts-1-hd (高清原声 · 音质更细腻)</option>
+                </select>
             </div>
-        </div>
 
-        <div class="section">
-            <h3>音频缓存管理</h3>
-            <div class="cache-info">
-                <p>缓存状态: <span id="cacheStatus">加载中...</span></p>
-                <p>缓存条目: <span id="cacheCount">-</span></p>
+            <div class="form-group">
+                <label for="voiceSelect">播音员音色</label>
+                <select id="voiceSelect" class="form-select">
+                    <option value="nova">Nova · 女声 (温和知性 · 推荐)</option>
+                    <option value="alloy">Alloy · 中性 (清晰自然)</option>
+                    <option value="echo">Echo · 男声 (沉稳有力)</option>
+                    <option value="fable">Fable · 叙事男声 (生动富有表现力)</option>
+                    <option value="onyx">Onyx · 浑厚男声 (播音腔调)</option>
+                    <option value="shimmer">Shimmer · 清脆女声 (明亮轻快)</option>
+                </select>
             </div>
-            <div class="cache-controls">
-                <button id="clearCache" class="secondary-btn">清空缓存</button>
-                <button id="cleanExpiredCache" class="secondary-btn">清理过期</button>
             </div>
-            <p class="hint">音频缓存可以避免重复调用API，提升响应速度</p>
-        </div>
 
+            <div class="form-group">
+                <label for="aiModel">AI 摘要模型</label>
+                <select id="aiModel" class="form-select" disabled>
+                    <option value="gpt-5.6-luna" selected>GPT-5.6-Luna (高效轻量 · 响应极快)</option>
+                </select>
+                <span class="form-hint">遵循现行核心模型规范，摘要始终使用 OpenAI Key</span>
+            </div>
 
+            <div class="form-group">
+                <div class="label-with-value">
+                    <label for="speedSlider">播放语速</label>
+                    <span id="speedValue" class="badge-value">0.85x</span>
+                </div>
+                <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.05" value="0.85" class="form-range" />
+            </div>
+        </section>
+
+        <!-- 扩展功能开关 -->
+        <section class="card">
+            <h3 class="card-title">阅读辅助</h3>
+            <label class="switch-row">
+                <span>在网页段落旁显示朗读按钮</span>
+                <input type="checkbox" id="showParagraphIcons" class="form-switch" />
+            </label>
+        </section>
+
+        <!-- API Key 设置 -->
+        <section class="card">
+            <h3 class="card-title">OpenAI API Key</h3>
+            <div class="api-key-row">
+                <input type="password" id="apiKey" placeholder="sk-..." class="form-input" />
+                <button id="saveApiKey" class="btn btn-save">保存</button>
+            </div>
+            <p class="form-hint">密钥仅保存在本地 Chrome 同步存储中，直接请求 OpenAI 官方接口</p>
+        </section>
+
+        <section class="card">
+            <h3 class="card-title">ElevenLabs API Key</h3>
+            <div class="api-key-row">
+                <input type="password" id="elevenApiKey" placeholder="粘贴 ElevenLabs API Key" class="form-input" />
+                <button id="saveElevenApiKey" class="btn btn-save">保存</button>
+            </div>
+            <p class="form-hint">在 ElevenLabs 后台 Developers → API Keys 创建；如果是受限 Key，需要勾选 Text to Speech 和 Voices 读取权限</p>
+        </section>
+
+        <!-- 持久化缓存管理 (IndexedDB) -->
+        <section class="card">
+            <div class="label-with-value">
+                <h3 class="card-title" style="margin-bottom:0;">本地持久缓存</h3>
+                <span id="cacheStats" class="badge-value">0 项 (0 KB)</span>
+            </div>
+            <p class="form-hint" style="margin-top: 4px;">基于 IndexedDB 持久化存储音频，跨会话无需重复调用 API 扣费</p>
+            <div class="cache-btn-group">
+                <button id="clearCacheBtn" class="btn btn-sm">清空全部缓存</button>
+                <button id="cleanExpiredBtn" class="btn btn-sm">清理 7 天过期</button>
+            </div>
+        </section>
+
+        <!-- 底部消息提示 -->
+        <div id="toastMessage" class="toast-bar"></div>
     </div>
 
     <script src="popup.js"></script>
 </body>
-</html> 
+</html>

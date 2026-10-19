@@ -1,15 +1,18 @@
 {
   "manifest_version": 3,
   "name": "Readify - 网页文字朗读助手",
-  "version": "1.0.0",
-  "description": "使用OpenAI TTS API朗读网页文字，支持语速调节和字体大小调节",
+  "version": "2.1.0",
+  "description": "基于 OpenAI / ElevenLabs TTS 与 GPT-5.6-Luna 的智能网页朗读助手，支持全文连续朗读、AI 摘要速读与高亮跟随",
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "offscreen",
+    "contextMenus"
   ],
   "host_permissions": [
-    "https://api.openai.com/*"
+    "https://api.openai.com/*",
+    "https://api.elevenlabs.io/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -27,7 +30,8 @@
   ],
   "icons": {
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }
-} 
+}

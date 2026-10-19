@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颜色变化测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .content-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .debug-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+        .manual-test {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background-color: #5a6fd8;
+        }
+        .test-button.loading {
+            background-color: #ff9800;
+        }
+        .test-button.playing {
+            background-color: #4caf50;
+        }
+        .test-button.played {
+            background-color: #8bc34a;
+        }
+        .test-button.error {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>颜色变化测试</h1>
+    
+    <div class="info">
+        <h3>测试说明</h3>
+        <p>这个页面用于测试颜色变化功能。点击下面的按钮来模拟不同的状态：</p>
+    </div>
+
+    <div class="manual-test">
+        <h3>手动测试颜色变化</h3>
+        <p>点击下面的按钮来测试不同的状态颜色：</p>
+        
+        <button class="test-button" onclick="testState('default')">默认状态（蓝色）</button>
+        <button class="test-button" onclick="testState('loading')">加载中（橙色）</button>
+        <button class="test-button" onclick="testState('playing')">播放中（绿色）</button>
+        <button class="test-button" onclick="testState('played')">已播放（浅绿色）</button>
+        <button class="test-button" onclick="testState('error')">错误状态（红色）</button>
+        
+        <div class="debug-info">
+            <strong>当前状态：</strong><span id="current-state">默认</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试段落</h2>
+        
+        <div class="content-block">
+            <p>这是一个测试段落，用于验证颜色变化功能是否正常工作。</p>
+            <div class="debug-info">段落ID: test-p-1 | 状态: 未播放</div>
+        </div>
+        
+        <div class="content-block">
+            <p>这是另一个测试段落，继续验证颜色变化。</p>
+            <div class="debug-info">段落ID: test-p-2 | 状态: 未播放</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试列表</h2>
+        
+        <div class="content-block">
+            <h3>测试列表</h3>
+            <ul>
+                <li>项目1</li>
+                <li>项目2</li>
+                <li>项目3</li>
+            </ul>
+            <div class="debug-info">列表ID: test-list-1 | 状态: 未播放</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>CSS类测试</h2>
+        
+        <p>测试CSS类是否正确应用：</p>
+        
+        <div style="margin: 10px 0;">
+            <span class="readify-speak-icon">🔊</span>
+            <span class="readify-speak-icon" data-loading="true">⏳</span>
+            <span class="readify-speak-icon" data-playing="true">🔊</span>
+            <span class="readify-speak-icon" data-played="true">✅</span>
+            <span class="readify-speak-icon" data-error="true">❌</span>
+        </div>
+        
+        <div class="debug-info">
+            <strong>说明：</strong>上面的图标应该显示不同的颜色
+        </div>
+    </div>
+
+    <script>
+        function testState(state) {
+            const buttons = document.querySelectorAll('.test-button');
+            buttons.forEach(btn => {
+                btn.className = 'test-button';
+            });
+            
+            const currentButton = event.target;
+            currentButton.classList.add(state);
+            
+            document.getElementById('current-state').textContent = state;
+            
+            console.log('测试状态:', state);
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('颜色变化测试页面已加载');
+            console.log('请启用段落图标功能并点击喇叭图标进行测试');
+        });
+    </script>
+</body>
+</html> 

@@ -1,185 +1,84 @@
-/* content.css - 内容脚本的样式 */
+/* content.css - 页面内容注入样式 */
 
-/* 高亮选中文字 */
-.readify-highlight {
-    background-color: #ffeb3b !important;
-    padding: 2px 4px !important;
-    border-radius: 3px !important;
-    transition: background-color 0.2s ease !important;
-}
-
-.readify-highlight:hover {
-    background-color: #fdd835 !important;
-}
-
-/* 确保高亮样式不被页面样式覆盖 */
-.readify-highlight * {
-    background-color: inherit !important;
-}
-
-/* 喇叭图标样式 */
-.readify-speak-icon {
-    display: inline-block !important;
-    margin-left: 8px !important;
-    padding: 2px 4px !important;
-    background-color: #667eea !important;
-    color: white !important;
+/* 阅读段落动态高亮跟随 */
+.readify-active-reading {
+    background-color: rgba(102, 126, 234, 0.18) !important;
+    border-left: 4px solid #667eea !important;
+    padding-left: 8px !important;
     border-radius: 4px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 12px rgba(102, 126, 234, 0.12) !important;
+}
+
+/* 划词/选词快速发音临时高亮 */
+.readify-snippet-highlight {
+    background-color: rgba(16, 185, 129, 0.22) !important;
+    border-bottom: 2px solid #10b981 !important;
+    border-radius: 3px !important;
+    padding: 1px 2px !important;
+    transition: all 0.25s ease !important;
+}
+
+/* 段落旁现代感朗读按钮 */
+.readify-speak-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-left: 8px !important;
+    padding: 3px 8px !important;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
     cursor: pointer !important;
-    font-size: 14px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
     line-height: 1 !important;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.35) !important;
     transition: all 0.2s ease !important;
     vertical-align: middle !important;
     user-select: none !important;
     -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
+    opacity: 0.85 !important;
 }
 
 .readify-speak-icon:hover {
-    background-color: #5a6fd8 !important;
-    transform: scale(1.1) !important;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+    opacity: 1 !important;
+    transform: translateY(-1px) scale(1.05) !important;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.5) !important;
 }
 
-.readify-speak-icon:active {
-    transform: scale(0.95) !important;
+.readify-speak-icon[data-state="loading"] {
+    background: #f59e0b !important;
+    animation: readify-pulse 1.2s infinite ease-in-out !important;
 }
 
-/* 加载状态 */
-.readify-speak-icon[data-loading="true"] {
-    background-color: #ff9800 !important;
-    animation: pulse 1.5s infinite !important;
+.readify-speak-icon[data-state="playing"] {
+    background: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3) !important;
+    animation: readify-wave 1.5s infinite ease-in-out !important;
 }
 
-/* 播放中状态 */
-.readify-speak-icon[data-playing="true"] {
-    background-color: #4caf50 !important;
-    color: white !important;
+.readify-speak-icon[data-state="ended"] {
+    background: #64748b !important;
+    opacity: 0.7 !important;
 }
 
-.readify-speak-icon[data-playing="true"]:hover {
-    background-color: #45a049 !important;
-    transform: scale(1.1) !important;
-    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+@keyframes readify-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.1); opacity: 0.6; }
 }
 
-/* 已播放状态 */
-.readify-speak-icon[data-played="true"] {
-    background-color: #8bc34a !important;
-    color: white !important;
+@keyframes readify-wave {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
 }
 
-.readify-speak-icon[data-played="true"]:hover {
-    background-color: #7cb342 !important;
-    transform: scale(1.1) !important;
-    box-shadow: 0 2px 8px rgba(139, 195, 74, 0.3) !important;
+/* 浮动迷你播放器容器（隔离宿主页面样式） */
+#readify-mini-player-root {
+    all: initial;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2147483647;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
-
-/* 错误状态 */
-.readify-speak-icon[data-error="true"] {
-    background-color: #f44336 !important;
-    color: white !important;
-}
-
-.readify-speak-icon[data-error="true"]:hover {
-    background-color: #d32f2f !important;
-    transform: scale(1.1) !important;
-    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3) !important;
-}
-
-/* 脉冲动画 */
-@keyframes pulse {
-    0% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-/* 确保图标在段落末尾正确显示 */
-p:has(.readify-speak-icon) {
-    position: relative !important;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .readify-speak-icon {
-        font-size: 12px !important;
-        padding: 1px 3px !important;
-        margin-left: 4px !important;
-    }
-}
-
-/* 确保图标不被页面样式覆盖 */
-.readify-speak-icon * {
-    background-color: inherit !important;
-    color: inherit !important;
-}
-
-/* 通知样式 */
-.readify-notification {
-    position: fixed !important;
-    top: 20px !important;
-    right: 20px !important;
-    background: #f44336 !important;
-    color: white !important;
-    padding: 12px 16px !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-    z-index: 10000 !important;
-    max-width: 300px !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 14px !important;
-    animation: slideIn 0.3s ease-out !important;
-}
-
-.notification-content {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-.notification-icon {
-    font-size: 16px !important;
-}
-
-.notification-text {
-    flex: 1 !important;
-    line-height: 1.4 !important;
-}
-
-.notification-close {
-    background: none !important;
-    border: none !important;
-    color: white !important;
-    font-size: 18px !important;
-    cursor: pointer !important;
-    padding: 0 !important;
-    width: 20px !important;
-    height: 20px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 50% !important;
-    transition: background-color 0.2s !important;
-}
-
-.notification-close:hover {
-    background-color: rgba(255,255,255,0.2) !important;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-} 

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字符计数测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .content-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .debug-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+        .result {
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>字符计数测试</h1>
+    
+    <div class="info">
+        <h3>测试说明</h3>
+        <p>这个页面用于测试字符计数功能，特别是中文字符的计数是否正确。</p>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景1：中英文混合</h2>
+        
+        <div class="content-block">
+            <p>这是一个包含中英文混合的段落。This is a mixed paragraph with Chinese and English text. 这里有一些中文字符，比如：你好世界！</p>
+            <div class="debug-info">段落ID: mixed-1 | 原始长度: 89 | 预期字符数: 约50</div>
+        </div>
+        
+        <div class="content-block">
+            <p>这是另一个混合段落。Hello world! 你好世界！This is another mixed paragraph.</p>
+            <div class="debug-info">段落ID: mixed-2 | 原始长度: 67 | 预期字符数: 约40</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景2：纯中文</h2>
+        
+        <div class="content-block">
+            <p>这是一个纯中文段落，包含很多中文字符。我们正在测试字符计数功能，看看中文字符是否被正确计算。这个段落应该包含大约五十个字符，用于测试合并功能。</p>
+            <div class="debug-info">段落ID: chinese-1 | 原始长度: 89 | 预期字符数: 约50</div>
+        </div>
+        
+        <div class="content-block">
+            <p>这是另一个纯中文段落，继续测试字符计数。中文字符在UTF-16编码中通常占用两个字节，但我们应该按字符而不是字节来计数。</p>
+            <div class="debug-info">段落ID: chinese-2 | 原始长度: 67 | 预期字符数: 约40</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景3：纯英文</h2>
+        
+        <div class="content-block">
+            <p>This is a pure English paragraph. It contains only English characters and should be counted correctly. The length should match the character count for English text.</p>
+            <div class="debug-info">段落ID: english-1 | 原始长度: 156 | 预期字符数: 约156</div>
+        </div>
+        
+        <div class="content-block">
+            <p>Another English paragraph for testing. This should also be counted correctly.</p>
+            <div class="debug-info">段落ID: english-2 | 原始长度: 67 | 预期字符数: 约67</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景4：特殊字符</h2>
+        
+        <div class="content-block">
+            <p>这是一个包含特殊字符的段落：😀🎉🌟 你好！Hello! 123 456 789</p>
+            <div class="debug-info">段落ID: special-1 | 原始长度: 35 | 预期字符数: 约35</div>
+        </div>
+        
+        <div class="content-block">
+            <p>更多特殊字符：🚀💻📱 测试 emoji 和中文混合</p>
+            <div class="debug-info">段落ID: special-2 | 原始长度: 25 | 预期字符数: 约25</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>手动测试</h2>
+        
+        <div style="margin: 20px 0;">
+            <label for="test-text">输入测试文本：</label><br>
+            <textarea id="test-text" rows="4" cols="60" placeholder="输入要测试的文本..."></textarea><br>
+            <button onclick="testCharacterCount()">测试字符计数</button>
+        </div>
+        
+        <div id="test-result"></div>
+    </div>
+
+    <script>
+        // 模拟Readify的字符计数函数
+        function getCharacterCount(text) {
+            if (!text) return 0;
+            
+            // 使用 Array.from() 来正确计算 Unicode 字符数量
+            const charCount = Array.from(text).length;
+            
+            return charCount;
+        }
+        
+        function testCharacterCount() {
+            const text = document.getElementById('test-text').value;
+            const resultDiv = document.getElementById('test-result');
+            
+            if (!text) {
+                resultDiv.innerHTML = '<div class="error">请输入测试文本</div>';
+                return;
+            }
+            
+            const length = text.length;
+            const charCount = getCharacterCount(text);
+            const isChinese = /[\u4e00-\u9fff]/.test(text);
+            const hasEmoji = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(text);
+            
+            const result = `
+                <div class="result">
+                    <strong>测试结果：</strong><br>
+                    文本长度 (length): ${length}<br>
+                    字符数量 (charCount): ${charCount}<br>
+                    是否包含中文: ${isChinese ? '是' : '否'}<br>
+                    是否包含emoji: ${hasEmoji ? '是' : '否'}<br>
+                    差异: ${length - charCount}<br>
+                    文本预览: ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}
+                </div>
+            `;
+            
+            resultDiv.innerHTML = result;
+            
+            console.log('字符计数测试:', {
+                text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+                length: length,
+                charCount: charCount,
+                isChinese: isChinese,
+                hasEmoji: hasEmoji
+            });
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('字符计数测试页面已加载');
+            
+            // 自动测试一些示例
+            const testTexts = [
+                'Hello world!',
+                '你好世界！',
+                'Hello 你好！',
+                '😀🎉🌟 测试 emoji',
+                'Hello 你好 😀🎉🌟'
+            ];
+            
+            console.log('自动测试字符计数:');
+            testTexts.forEach((text, index) => {
+                const length = text.length;
+                const charCount = getCharacterCount(text);
+                console.log(`测试 ${index + 1}:`, {
+                    text: text,
+                    length: length,
+                    charCount: charCount,
+                    difference: length - charCount
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

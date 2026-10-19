@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>段落合并功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .short-paragraph {
+            background-color: #f0f8ff;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #4CAF50;
+        }
+        .medium-paragraph {
+            background-color: #fff8f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #FF9800;
+        }
+        .long-paragraph {
+            background-color: #f8f0ff;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #9C27B0;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .character-count {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>段落合并功能测试</h1>
+    
+    <div class="info">
+        <h3>测试说明</h3>
+        <p>这个页面用于测试段落合并功能。每个段落都有不同长度，点击段落后的喇叭图标应该会：</p>
+        <ul>
+            <li>如果段落长度不足450字符，会自动合并后续段落</li>
+            <li>合并后的文本会一起发送到TTS API</li>
+            <li>图标状态会显示在最后一个被合并的段落后面</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景1：短段落合并</h2>
+        
+        <div class="short-paragraph">
+            <p>这是第一个短段落，只有几十个字符。这个段落应该会被合并到下一个段落中。</p>
+            <div class="character-count">字符数：约50个</div>
+        </div>
+        
+        <div class="short-paragraph">
+            <p>这是第二个短段落，也是几十个字符。这个段落应该会和第一个段落一起被合并。</p>
+            <div class="character-count">字符数：约60个</div>
+        </div>
+        
+        <div class="short-paragraph">
+            <p>这是第三个短段落，和前两个段落一起应该能达到450字符的目标。</p>
+            <div class="character-count">字符数：约55个</div>
+        </div>
+        
+        <div class="short-paragraph">
+            <p>这是第四个短段落，如果前面三个段落已经达到450字符，这个段落就不会被包含在合并中。</p>
+            <div class="character-count">字符数：约70个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景2：中等长度段落</h2>
+        
+        <div class="medium-paragraph">
+            <p>这是一个中等长度的段落，大约有200个字符。这个段落包含了足够的内容来测试合并功能，但是还不足以达到450字符的目标。因此，它可能需要和下一个段落合并。</p>
+            <div class="character-count">字符数：约200个</div>
+        </div>
+        
+        <div class="medium-paragraph">
+            <p>这是另一个中等长度的段落，大约也有200个字符。这个段落和上一个段落合并后应该能达到450字符的目标。这样就能测试合并功能是否正常工作。</p>
+            <div class="character-count">字符数：约200个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景3：长段落</h2>
+        
+        <div class="long-paragraph">
+            <p>这是一个很长的段落，包含了超过450个字符的内容。这个段落应该能够独立发送到TTS API，不需要和其他段落合并。这个段落的内容足够丰富，可以用来测试长文本的处理能力。它包含了各种不同的句子结构，以及足够的信息来验证合并逻辑是否正确工作。</p>
+            <div class="character-count">字符数：约450个</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景4：混合长度段落</h2>
+        
+        <div class="short-paragraph">
+            <p>短段落1</p>
+            <div class="character-count">字符数：约10个</div>
+        </div>
+        
+        <div class="short-paragraph">
+            <p>短段落2</p>
+            <div class="character-count">字符数：约10个</div>
+        </div>
+        
+        <div class="medium-paragraph">
+            <p>这是一个中等长度的段落，大约有300个字符。这个段落和前面的短段落合并后应该能达到450字符的目标。这样可以测试不同长度段落的混合合并功能。</p>
+            <div class="character-count">字符数：约300个</div>
+        </div>
+        
+        <div class="short-paragraph">
+            <p>短段落3</p>
+            <div class="character-count">字符数：约10个</div>
+        </div>
+    </div>
+
+    <script>
+        // 添加字符计数功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const paragraphs = document.querySelectorAll('p');
+            paragraphs.forEach((p, index) => {
+                const charCount = p.textContent.length;
+                console.log(`段落 ${index + 1}: ${charCount} 字符`);
+            });
+        });
+    </script>
+</body>
+</html> 

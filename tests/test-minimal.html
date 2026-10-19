@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最小化颜色变化测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .readify-speak-icon {
+            display: inline-block !important;
+            margin-left: 8px !important;
+            padding: 2px 4px !important;
+            background-color: #667eea !important;
+            color: white !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+            line-height: 1 !important;
+            transition: all 0.2s ease !important;
+            vertical-align: middle !important;
+            user-select: none !important;
+        }
+        .readify-speak-icon[data-loading="true"] {
+            background-color: #ff9800 !important;
+            animation: pulse 1.5s infinite !important;
+        }
+        .readify-speak-icon[data-playing="true"] {
+            background-color: #4caf50 !important;
+            color: white !important;
+        }
+        .readify-speak-icon[data-played="true"] {
+            background-color: #8bc34a !important;
+            color: white !important;
+        }
+        .readify-speak-icon[data-error="true"] {
+            background-color: #f44336 !important;
+            color: white !important;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .debug-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <h1>最小化颜色变化测试</h1>
+    
+    <div class="test-content">
+        <p>这是一个测试段落，用于验证颜色变化功能。</p>
+        <span class="readify-speak-icon" data-paragraph-id="test-1">🔊</span>
+        <div class="debug-info">段落ID: test-1 | 状态: 未播放</div>
+    </div>
+    
+    <div class="test-content">
+        <p>这是另一个测试段落。</p>
+        <span class="readify-speak-icon" data-paragraph-id="test-2">🔊</span>
+        <div class="debug-info">段落ID: test-2 | 状态: 未播放</div>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <h3>手动测试按钮：</h3>
+        <button onclick="testState('test-1', 'loading')">加载中</button>
+        <button onclick="testState('test-1', 'playing')">播放中</button>
+        <button onclick="testState('test-1', 'ended')">已播放</button>
+        <button onclick="testState('test-1', 'error')">错误</button>
+        <button onclick="resetState('test-1')">重置</button>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <h3>CSS类测试：</h3>
+        <span class="readify-speak-icon">🔊</span>
+        <span class="readify-speak-icon" data-loading="true">⏳</span>
+        <span class="readify-speak-icon" data-playing="true">🔊</span>
+        <span class="readify-speak-icon" data-played="true">✅</span>
+        <span class="readify-speak-icon" data-error="true">❌</span>
+    </div>
+
+    <script>
+        function testState(paragraphId, state) {
+            const icon = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
+            if (!icon) {
+                console.log('找不到图标:', paragraphId);
+                return;
+            }
+            
+            console.log('测试状态:', paragraphId, state);
+            
+            // 清除所有状态属性
+            icon.removeAttribute('data-loading');
+            icon.removeAttribute('data-playing');
+            icon.removeAttribute('data-played');
+            icon.removeAttribute('data-error');
+            
+            switch (state) {
+                case 'loading':
+                    icon.innerHTML = '⏳';
+                    icon.setAttribute('data-loading', 'true');
+                    break;
+                case 'playing':
+                    icon.innerHTML = '🔊';
+                    icon.setAttribute('data-playing', 'true');
+                    break;
+                case 'ended':
+                    icon.innerHTML = '✅';
+                    icon.setAttribute('data-played', 'true');
+                    break;
+                case 'error':
+                    icon.innerHTML = '❌';
+                    icon.setAttribute('data-error', 'true');
+                    break;
+            }
+        }
+        
+        function resetState(paragraphId) {
+            const icon = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
+            if (icon) {
+                icon.innerHTML = '🔊';
+                icon.removeAttribute('data-loading');
+                icon.removeAttribute('data-playing');
+                icon.removeAttribute('data-played');
+                icon.removeAttribute('data-error');
+            }
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('最小化颜色变化测试页面已加载');
+        });
+    </script>
+</body>
+</html> 

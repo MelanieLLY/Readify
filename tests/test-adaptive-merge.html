@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自适应合并策略测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .content-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .debug-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+        .result {
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #155724;
+        }
+        .chinese-section {
+            border-left-color: #FF9800;
+        }
+        .english-section {
+            border-left-color: #2196F3;
+        }
+        .mixed-section {
+            border-left-color: #9C27B0;
+        }
+    </style>
+</head>
+<body>
+    <h1>自适应合并策略测试</h1>
+    
+    <div class="info">
+        <h3>测试说明</h3>
+        <p>这个页面用于测试自适应合并策略。系统会根据文本语言自动调整目标字符数：</p>
+        <ul>
+            <li><strong>中文/日文/韩文</strong>：目标200字符</li>
+            <li><strong>英文/其他语言</strong>：目标450字符</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景1：中文段落（目标200字符）</h2>
+        
+        <div class="content-block chinese-section">
+            <p>这是一个中文段落，用于测试自适应合并策略。这个段落包含大约五十个中文字符，系统应该将其识别为中文内容，并使用较小的目标字符数进行合并。</p>
+            <div class="debug-info">段落ID: chinese-1 | 字符数: 约50 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>这是第二个中文段落，继续测试合并功能。中文字符的密度较高，信息量较大，因此使用较小的目标字符数可以避免合并过多的内容。</p>
+            <div class="debug-info">段落ID: chinese-2 | 字符数: 约60 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>第三个中文段落，测试连续合并。如果前面的段落已经达到200字符的目标，这个段落就不会被包含在合并中。</p>
+            <div class="debug-info">段落ID: chinese-3 | 字符数: 约55 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>第四个中文段落，用于验证合并逻辑。系统应该能够正确识别中文内容并应用合适的合并策略。</p>
+            <div class="debug-info">段落ID: chinese-4 | 字符数: 约50 | 预期目标: 200字符</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景2：英文段落（目标450字符）</h2>
+        
+        <div class="content-block english-section">
+            <p>This is an English paragraph for testing the adaptive merge strategy. This paragraph contains approximately fifty English characters. The system should identify this as English content and use a larger target character count for merging.</p>
+            <div class="debug-info">段落ID: english-1 | 字符数: 约150 | 预期目标: 450字符</div>
+        </div>
+        
+        <div class="content-block english-section">
+            <p>This is the second English paragraph, continuing to test the merge functionality. English characters have lower density compared to Chinese, so a larger target character count is used to ensure adequate content for TTS processing.</p>
+            <div class="debug-info">段落ID: english-2 | 字符数: 约180 | 预期目标: 450字符</div>
+        </div>
+        
+        <div class="content-block english-section">
+            <p>The third English paragraph for testing continuous merging. If the previous paragraphs have already reached the 450 character target, this paragraph should not be included in the merge.</p>
+            <div class="debug-info">段落ID: english-3 | 字符数: 约160 | 预期目标: 450字符</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景3：中英文混合段落</h2>
+        
+        <div class="content-block mixed-section">
+            <p>这是一个中英文混合的段落。This is a mixed paragraph with Chinese and English text. 系统应该根据主要语言来决定目标字符数。Since this paragraph contains more Chinese characters, it should use the Chinese target of 200 characters.</p>
+            <div class="debug-info">段落ID: mixed-1 | 字符数: 约120 | 预期目标: 200字符（主要中文）</div>
+        </div>
+        
+        <div class="content-block mixed-section">
+            <p>This is another mixed paragraph with more English content. 这个段落包含更多的英文内容，系统应该识别为英文段落并使用450字符的目标。The system should identify this as primarily English content.</p>
+            <div class="debug-info">段落ID: mixed-2 | 字符数: 约140 | 预期目标: 450字符（主要英文）</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试场景4：短段落合并</h2>
+        
+        <div class="content-block chinese-section">
+            <p>短段落1</p>
+            <div class="debug-info">段落ID: short-1 | 字符数: 约5 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>短段落2</p>
+            <div class="debug-info">段落ID: short-2 | 字符数: 约5 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>短段落3</p>
+            <div class="debug-info">段落ID: short-3 | 字符数: 约5 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>短段落4</p>
+            <div class="debug-info">段落ID: short-4 | 字符数: 约5 | 预期目标: 200字符</div>
+        </div>
+        
+        <div class="content-block chinese-section">
+            <p>短段落5</p>
+            <div class="debug-info">段落ID: short-5 | 字符数: 约5 | 预期目标: 200字符</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>操作说明</h2>
+        
+        <ol>
+            <li><strong>启用段落图标</strong>：在扩展设置中开启段落图标功能</li>
+            <li><strong>点击测试</strong>：点击任意段落旁的喇叭图标</li>
+            <li><strong>观察控制台</strong>：打开浏览器控制台查看调试信息</li>
+            <li><strong>验证合并</strong>：观察是否根据语言正确调整了目标字符数</li>
+        </ol>
+        
+        <div class="debug-info">
+            <strong>预期行为：</strong>
+            <ul>
+                <li>中文段落：显示"检测到东亚语言，使用较小的目标字符数: 200"</li>
+                <li>英文段落：显示"使用默认目标字符数: 450"</li>
+                <li>混合段落：根据主要语言决定目标字符数</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 模拟Readify的语言检测和字符计数函数
+        function getCharacterCount(text) {
+            if (!text) return 0;
+            return Array.from(text).length;
+        }
+        
+        function getTargetCharCount(text) {
+            if (!text) return 450;
+            
+            const hasChinese = /[\u4e00-\u9fff]/.test(text);
+            const hasJapanese = /[\u3040-\u309f\u30a0-\u30ff]/.test(text);
+            const hasKorean = /[\uac00-\ud7af]/.test(text);
+            
+            if (hasChinese || hasJapanese || hasKorean) {
+                console.log('检测到东亚语言，使用较小的目标字符数: 200');
+                return 200;
+            }
+            
+            console.log('使用默认目标字符数: 450');
+            return 450;
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('自适应合并策略测试页面已加载');
+            
+            // 测试语言检测
+            const testTexts = [
+                '这是一个中文测试',
+                'This is an English test',
+                'This is a mixed test 这是混合测试',
+                'これは日本語のテストです',
+                '이것은 한국어 테스트입니다'
+            ];
+            
+            console.log('语言检测测试:');
+            testTexts.forEach((text, index) => {
+                const charCount = getCharacterCount(text);
+                const targetChars = getTargetCharCount(text);
+                console.log(`测试 ${index + 1}:`, {
+                    text: text,
+                    charCount: charCount,
+                    targetChars: targetChars
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

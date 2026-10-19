@@ -1,33 +1,22 @@
 {
   "name": "readify-chrome-extension",
-  "version": "1.0.0",
-  "description": "Chrome浏览器插件，使用OpenAI TTS API朗读网页文字",
+  "version": "2.1.0",
+  "description": "基于 OpenAI TTS 与 GPT-5.6-Luna 的智能网页朗读与 AI 速读伴读扩展",
   "main": "background.js",
   "scripts": {
-    "build": "echo 'Chrome插件无需构建，直接加载即可'",
-    "test": "echo '请在Chrome浏览器中测试插件功能'"
+    "build": "echo 'Chrome插件无需构建，直接在扩展中心加载已解压项即可'",
+    "test": "echo '测试文件已归档至 tests/ 目录'"
   },
   "keywords": [
     "chrome-extension",
     "tts",
     "openai",
     "text-to-speech",
+    "gpt-5.6-luna",
     "朗读",
-    "网页阅读"
+    "网页阅读",
+    "ai-summary"
   ],
-  "author": "Your Name",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/readify-chrome-extension.git"
-  },
-  "bugs": {
-    "url": "https://github.com/yourusername/readify-chrome-extension/issues"
-  },
-  "homepage": "https://github.com/yourusername/readify-chrome-extension#readme",
-  "devDependencies": {},
-  "dependencies": {},
-  "engines": {
-    "node": ">=14.0.0"
-  }
-} 
+  "author": "Readify Team",
+  "license": "MIT"
+}
