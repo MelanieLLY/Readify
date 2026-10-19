@@ -342,7 +342,8 @@
 
             const container = document.createElement('div');
             container.id = 'readify-mini-player-root';
-            document.body.appendChild(container);
+            // 挂在 <html> 上：部分网站给 <body> 加 transform/filter，会让 fixed 定位相对 body 而不是窗口
+            document.documentElement.appendChild(container);
 
             this.playerRoot = container;
             this.playerShadow = container.attachShadow({ mode: 'open' });
@@ -615,6 +616,7 @@
             };
             track.addEventListener('pointerup', (e) => endScrub(e, true));
             track.addEventListener('pointercancel', (e) => endScrub(e, false));
+            track.addEventListener('lostpointercapture', (e) => endScrub(e, false));
 
             this.initDragging();
         }
@@ -639,15 +641,26 @@
 
             header.addEventListener('pointerdown', (e) => {
                 if (e.button !== 0 || e.target.closest('button')) return;
-                const rect = root.getBoundingClientRect();
-                drag = { dx: e.clientX - rect.left, dy: e.clientY - rect.top, id: e.pointerId };
+                const style = getComputedStyle(root);
+                drag = {
+                    id: e.pointerId,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    rect: root.getBoundingClientRect(),
+                    left: parseFloat(style.left) || 0,
+                    top: parseFloat(style.top) || 0
+                };
                 header.setPointerCapture(e.pointerId);
                 e.preventDefault();
             });
 
+            // 按鼠标位移量移动，而不是用绝对坐标，避免网页缩放/transform 导致卡片偏离鼠标
             header.addEventListener('pointermove', (e) => {
                 if (!drag || e.pointerId !== drag.id) return;
-                this.playerPos = this.clampPlayerPos(e.clientX - drag.dx, e.clientY - drag.dy);
+                const { rect } = drag;
+                const dx = Math.min(window.innerWidth - rect.right, Math.max(-rect.left, e.clientX - drag.startX));
+                const dy = Math.min(window.innerHeight - rect.bottom, Math.max(-rect.top, e.clientY - drag.startY));
+                this.playerPos = { left: Math.round(drag.left + dx), top: Math.round(drag.top + dy) };
                 apply(this.playerPos);
             });
 
@@ -660,6 +673,8 @@
             };
             header.addEventListener('pointerup', endDrag);
             header.addEventListener('pointercancel', endDrag);
+            // 在窗口外松开鼠标等情况收不到 pointerup，必须在失去捕获时结束拖动，否则悬停标题栏也会带着卡片跑
+            header.addEventListener('lostpointercapture', endDrag);
 
             header.addEventListener('dblclick', (e) => {
                 if (e.target.closest('button')) return;
