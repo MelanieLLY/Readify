@@ -8,6 +8,21 @@ const ELEVEN_MODEL_ERRORS = ['model_not_found', 'model_access_denied', 'unsuppor
 // 换音色可能解决的错误（免费账号无法通过 API 使用部分音色库音色）
 const ELEVEN_VOICE_ERRORS = ['voice_not_found', 'voice_access_denied', 'invalid_voice_id'];
 
+// 判断一段文字的朗读语言，传给 ElevenLabs 的 language_code，避免自动识别把中文读成粤语/英文混杂
+// 按“词”计数：每个汉字算 1，每个拉丁字母单词算 1；汉字超过 1/3 即判为中文
+function detectLanguage(text) {
+    if (/[\u3040-\u30ff]/.test(text)) return 'ja'; // 有假名一定是日文（日文也含汉字，需先判断）
+    const han = (text.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length;
+    const hangul = (text.match(/[\uac00-\ud7af]/g) || []).length;
+    const latinWords = (text.match(/[A-Za-z\u00c0-\u024f]+/g) || []);
+    const units = han + hangul + latinWords.length;
+    if (units === 0) return null;
+    if (han / units > 1 / 3) return 'zh';
+    if (hangul / units > 1 / 3) return 'ko';
+    if (latinWords.length && latinWords.every(w => /^[A-Za-z]+$/.test(w))) return 'en';
+    return null; // 法语、德语等交给 ElevenLabs 自动识别
+}
+
 class ReadifyBackground {
     constructor() {
         this.cache = new AudioCache();
@@ -423,7 +438,7 @@ class ReadifyBackground {
         });
 
         // 1. 检查持久化缓存（IndexedDB）
-        const cacheKey = await this.cache.generateKey(chunk.text, config.voice, config.ttsModel);
+        const cacheKey = await this.cacheKeyFor(chunk.text, config);
         let audioData = null;
         let fromCache = false;
 
@@ -437,7 +452,7 @@ class ReadifyBackground {
             if (token !== this.playToken) return; // 请求期间已被停止或切换
             audioData = result.audioData;
             const used = result.config;
-            const usedKey = used === config ? cacheKey : await this.cache.generateKey(chunk.text, used.voice, used.ttsModel);
+            const usedKey = used === config ? cacheKey : await this.cacheKeyFor(chunk.text, used);
             // 异步存入缓存
             this.cache.set(usedKey, {
                 audioData: audioData,
@@ -504,13 +519,13 @@ class ReadifyBackground {
         if (nextIndex >= this.playlist.length) return;
         const nextChunk = this.playlist[nextIndex];
         if (!nextChunk) return;
-        const nextCacheKey = await this.cache.generateKey(nextChunk.text, config.voice, config.ttsModel);
+        const nextCacheKey = await this.cacheKeyFor(nextChunk.text, config);
 
         const cached = await this.cache.get(nextCacheKey);
         if (!cached) {
             try {
                 const { audioData: nextAudio, config: used } = await this.fetchTTS(nextChunk.text, config);
-                const usedKey = used === config ? nextCacheKey : await this.cache.generateKey(nextChunk.text, used.voice, used.ttsModel);
+                const usedKey = used === config ? nextCacheKey : await this.cacheKeyFor(nextChunk.text, used);
                 await this.cache.set(usedKey, {
                     audioData: nextAudio,
                     text: nextChunk.text,
@@ -522,6 +537,14 @@ class ReadifyBackground {
                 console.warn('[Background] 预缓冲分片失败（不影响主流程）:', e.message);
             }
         }
+    }
+
+    // ElevenLabs 的缓存键带上语言：同时让旧版本自动识别读错的缓存失效
+    cacheKeyFor(text, config) {
+        const model = config.provider === 'elevenlabs'
+            ? `${config.ttsModel}|${detectLanguage(text) || 'auto'}`
+            : config.ttsModel;
+        return this.cache.generateKey(text, config.voice, model);
     }
 
     // 返回 { audioData, config }，config 为实际使用的配置（ElevenLabs 回退后可能与传入不同）
@@ -627,6 +650,16 @@ class ReadifyBackground {
     }
 
     // 调用 ElevenLabs TTS（默认返回 mp3_44100_128，与现有缓存/播放流程一致；语速由播放器调整）
+    elevenRequestBody(text, model) {
+        const body = { text: text, model_id: model };
+        const language = detectLanguage(text);
+        // 官方说明 multilingual_v2 不支持 language_code，其余模型传入以锁定语言
+        if (language && !model.startsWith('eleven_multilingual_v2')) {
+            body.language_code = language;
+        }
+        return body;
+    }
+
     async fetchElevenLabsTTS(text, apiKey, voiceId, model = 'eleven_flash_v2_5') {
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`, {
             method: 'POST',
@@ -635,10 +668,7 @@ class ReadifyBackground {
                 'Content-Type': 'application/json',
                 'Accept': 'audio/mpeg'
             },
-            body: JSON.stringify({
-                text: text,
-                model_id: model
-            })
+            body: JSON.stringify(this.elevenRequestBody(text, model))
         });
 
         if (!response.ok) {
